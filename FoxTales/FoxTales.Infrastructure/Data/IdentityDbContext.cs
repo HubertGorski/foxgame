@@ -1,7 +1,7 @@
 using Hub.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace FoxTales.Api.Data;
+namespace FoxTales.Infrastructure.Data;
 
 public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : DbContext(options)
 {

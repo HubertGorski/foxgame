@@ -1,9 +1,9 @@
-using FoxTales.Api.Data;
+using FoxTales.Infrastructure.Data;
 using Hub.Identity.Entities;
 using Hub.Identity.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace FoxTales.Api.Repositories;
+namespace FoxTales.Infrastructure.Repositories;
 
 public class EfUserRepository(IdentityDbContext db) : IUserRepository
 {

@@ -1,18 +1,11 @@
-using FoxTales.Api.Data;
-using FoxTales.Api.Repositories;
+using FoxTales.Infrastructure;
 using Hub.Identity.Interfaces;
 using Hub.Identity.Services;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default"))
-    .EnableSensitiveDataLogging()
-    .LogTo(Console.WriteLine, LogLevel.Information)
-    );
 
-builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddControllers();
