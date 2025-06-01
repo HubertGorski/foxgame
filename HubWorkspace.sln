@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FoxTales", "FoxTales", "{76877A79-B811-FD64-C14A-FA255DFD26FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Api", "FoxTales\FoxTales.Api\FoxTales.Api.csproj", "{6DAF9536-DE73-43E2-8131-5B6E2A959795}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Hub", "Hub", "{51CE16EA-E9CD-CE3B-EB17-741FBED2C8AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hub.Identity", "Hub\Hub.Identity\Hub.Identity.csproj", "{63C301C6-75A1-4B14-8729-EDEE34E0A7B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Application", "FoxTales\FoxTales.Application\FoxTales.Application.csproj", "{1F34B956-43A9-4032-8FF2-1212AD737877}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Infrastructure", "FoxTales\FoxTales.Infrastructure\FoxTales.Infrastructure.csproj", "{62F44C87-D8AD-4180-98B3-30686D6F3978}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Domain", "FoxTales\FoxTales.Domain\FoxTales.Domain.csproj", "{09BD20FE-1454-48EB-BD0E-7B609F0D56D6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6DAF9536-DE73-43E2-8131-5B6E2A959795}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DAF9536-DE73-43E2-8131-5B6E2A959795}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DAF9536-DE73-43E2-8131-5B6E2A959795}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DAF9536-DE73-43E2-8131-5B6E2A959795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63C301C6-75A1-4B14-8729-EDEE34E0A7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63C301C6-75A1-4B14-8729-EDEE34E0A7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63C301C6-75A1-4B14-8729-EDEE34E0A7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63C301C6-75A1-4B14-8729-EDEE34E0A7B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F34B956-43A9-4032-8FF2-1212AD737877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F34B956-43A9-4032-8FF2-1212AD737877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F34B956-43A9-4032-8FF2-1212AD737877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F34B956-43A9-4032-8FF2-1212AD737877}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62F44C87-D8AD-4180-98B3-30686D6F3978}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62F44C87-D8AD-4180-98B3-30686D6F3978}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62F44C87-D8AD-4180-98B3-30686D6F3978}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62F44C87-D8AD-4180-98B3-30686D6F3978}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6DAF9536-DE73-43E2-8131-5B6E2A959795} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
+		{63C301C6-75A1-4B14-8729-EDEE34E0A7B2} = {51CE16EA-E9CD-CE3B-EB17-741FBED2C8AA}
+		{1F34B956-43A9-4032-8FF2-1212AD737877} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
+		{62F44C87-D8AD-4180-98B3-30686D6F3978} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
+		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
+	EndGlobalSection
+EndGlobal

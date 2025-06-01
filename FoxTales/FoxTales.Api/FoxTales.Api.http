@@ -1,0 +1,6 @@
+@FoxTales.Api_HostAddress = http://localhost:5161
+
+GET {{FoxTales.Api_HostAddress}}/user/
+Accept: application/json
+
+###
