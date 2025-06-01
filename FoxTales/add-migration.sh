@@ -5,5 +5,5 @@ fi
 
 dotnet ef migrations add "$1" \
   --project ./FoxTales.Infrastructure \
-  --startup-project ./FoxTales.Web \
+  --startup-project ./FoxTales.Api \
   --output-dir Persistence/Migrations

@@ -6,6 +6,7 @@ namespace FoxTales.Infrastructure.Data;
 public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Achievement> Achievements { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -21,6 +22,7 @@ public class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : Db
 
         modelBuilder.Entity<Achievement>(entity =>
         {
+            entity.ToTable("Achievements");
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Title).IsRequired().HasMaxLength(32);
             entity.Property(u => u.Subtitle).IsRequired().HasMaxLength(124);

@@ -1,5 +1,6 @@
 using System;
 using FoxTales.Infrastructure.Data;
+using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
 using Hub.Identity.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,20 @@ public static class DependencyInjection
     {
         services.AddDbContext<IdentityDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Default"))
-
         );
+
+        services.AddScoped<AchievementSeeder>();
+        services.AddScoped<DatabaseSeeder>();
 
         services.AddScoped<IUserRepository, EfUserRepository>();
         return services;
+    }
+
+    public static async Task SeedDatabaseAsync(this IServiceCollection services)
+    {
+        using var serviceProvider = services.BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        await seeder.SeedAsync();
     }
 }

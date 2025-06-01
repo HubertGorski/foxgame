@@ -1,5 +1,3 @@
-using System;
-
 namespace Hub.Identity.Entities;
 
 public class Achievement
