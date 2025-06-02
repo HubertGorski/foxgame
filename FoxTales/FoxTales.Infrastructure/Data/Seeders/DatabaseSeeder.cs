@@ -2,9 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(
-    ILogger<DatabaseSeeder> logger,
-    AchievementSeeder achievementSeeder)
+public class DatabaseSeeder(ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder)
 {
     private readonly ILogger<DatabaseSeeder> _logger = logger;
     private readonly AchievementSeeder _achievementSeeder = achievementSeeder;

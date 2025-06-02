@@ -4,9 +4,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace FoxTales.Infrastructure.Data;
 
-public class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbContext>
+public class IdentityDbContextFactory : IDesignTimeDbContextFactory<FoxTalesDbContext>
 {
-    public IdentityDbContext CreateDbContext(string[] args)
+    public FoxTalesDbContext CreateDbContext(string[] args)
     {
         var config = new ConfigurationBuilder()
             .SetBasePath(Path.Combine(Directory.GetCurrentDirectory(), "../FoxTales.Api"))
@@ -16,9 +16,9 @@ public class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbCo
 
         var connectionString = config.GetConnectionString("Default");
 
-        var optionsBuilder = new DbContextOptionsBuilder<IdentityDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<FoxTalesDbContext>();
         optionsBuilder.UseSqlServer(connectionString);
 
-        return new IdentityDbContext(optionsBuilder.Options);
+        return new FoxTalesDbContext(optionsBuilder.Options);
     }
 }

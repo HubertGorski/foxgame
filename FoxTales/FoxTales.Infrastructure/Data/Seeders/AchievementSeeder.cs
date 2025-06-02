@@ -3,9 +3,9 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class AchievementSeeder(IdentityDbContext context, ILogger<AchievementSeeder> logger)
+public class AchievementSeeder(FoxTalesDbContext context, ILogger<AchievementSeeder> logger)
 {
-    private readonly IdentityDbContext _context = context;
+    private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<AchievementSeeder> _logger = logger;
 
     public async Task SeedAsync()

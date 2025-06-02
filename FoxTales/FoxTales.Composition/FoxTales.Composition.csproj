@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FoxTales.Domain\FoxTales.Domain.csproj" />
+    <ProjectReference Include="..\FoxTales.Infrastructure\FoxTales.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

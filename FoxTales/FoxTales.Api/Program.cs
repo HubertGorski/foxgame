@@ -1,13 +1,11 @@
-using FoxTales.Infrastructure;
-using FoxTales.Infrastructure.Data.Seeders;
 using Hub.Identity.Interfaces;
 using Hub.Identity.Services;
+using FoxTales.Composition;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddTransient<AchievementSeeder>();
 builder.Services.AddControllers();
 await builder.Services.SeedDatabaseAsync();
 

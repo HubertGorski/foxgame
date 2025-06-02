@@ -1,4 +1,3 @@
-using System;
 using FoxTales.Infrastructure.Data;
 using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
@@ -7,20 +6,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FoxTales.Infrastructure;
+namespace FoxTales.Composition;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<IdentityDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("Default"))
-        );
-
-        services.AddScoped<AchievementSeeder>();
-        services.AddScoped<DatabaseSeeder>();
+        services.AddDbContext<FoxTalesDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("Default")));
 
         services.AddScoped<IUserRepository, EfUserRepository>();
+
+        services.AddScoped<DatabaseSeeder>();
+        services.AddTransient<AchievementSeeder>();
+
         return services;
     }
 

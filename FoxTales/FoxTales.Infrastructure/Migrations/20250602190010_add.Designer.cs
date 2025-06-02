@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FoxTales.Infrastructure.Migrations
 {
-    [DbContext(typeof(IdentityDbContext))]
-    [Migration("20250601190940_InitialCreate")]
-    partial class InitialCreate
+    [DbContext(typeof(FoxTalesDbContext))]
+    [Migration("20250602190010_add")]
+    partial class add
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,26 @@ namespace FoxTales.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Type")
+                        .HasMaxLength(32)
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DylematyCards", (string)null);
+                });
 
             modelBuilder.Entity("Hub.Identity.Entities.Achievement", b =>
                 {
@@ -51,7 +71,7 @@ namespace FoxTales.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Achievement");
+                    b.ToTable("Achievements", (string)null);
                 });
 
             modelBuilder.Entity("Hub.Identity.Entities.User", b =>

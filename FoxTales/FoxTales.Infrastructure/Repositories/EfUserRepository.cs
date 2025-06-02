@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FoxTales.Infrastructure.Repositories;
 
-public class EfUserRepository(IdentityDbContext db) : IUserRepository
+public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
 {
-    private readonly IdentityDbContext _db = db;
+    private readonly FoxTalesDbContext _db = db;
 
     public async Task AddAsync(User user)
     {
