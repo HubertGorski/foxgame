@@ -1,5 +1,5 @@
-using FoxTales.Domain.Entities;
-using FoxTales.Domain.Interfaces;
+using FoxTales.Domain.Entities; //TODO: use DTO or sth from FoxTales.Application
+using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoxTales.Api.Controllers

@@ -1,6 +1,6 @@
 using FoxTales.Domain.Entities;
 
-namespace FoxTales.Domain.Interfaces;
+namespace FoxTales.Application.Interfaces;
 
 public interface IDylematyService
 {

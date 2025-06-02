@@ -1,7 +1,8 @@
+using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
 
-namespace FoxTales.Application.Services;
+namespace FoxTales.Infrastructure.Services;
 
 public class DylematyService(IDylematyRepository dylematyRepository) : IDylematyService
 {
