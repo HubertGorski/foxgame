@@ -1,3 +1,4 @@
+using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
@@ -16,6 +17,7 @@ public static class DependencyInjection
             options.UseSqlServer(configuration.GetConnectionString("Default")));
 
         services.AddScoped<IUserRepository, EfUserRepository>();
+        services.AddScoped<IDylematyRepository, EfDylematyRepository>();
 
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();

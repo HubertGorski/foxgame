@@ -1,3 +1,4 @@
+using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,20 @@ namespace FoxTales.Api.Controllers
             {
                 var cards = await _dylematyService.GetAllCards();
                 return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("add")]
+        public async Task<IActionResult> AddCard([FromForm] DylematyCard card)
+        {
+            try
+            {
+                await _dylematyService.AddCard(card);
+                return Ok();
             }
             catch (Exception ex)
             {

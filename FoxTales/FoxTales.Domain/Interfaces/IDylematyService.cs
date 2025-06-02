@@ -5,4 +5,5 @@ namespace FoxTales.Domain.Interfaces;
 public interface IDylematyService
 {
     Task<IEnumerable<DylematyCard>> GetAllCards();
+    Task AddCard(DylematyCard card);
 }

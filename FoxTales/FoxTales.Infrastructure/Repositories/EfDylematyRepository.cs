@@ -12,4 +12,10 @@ public class EfDylematyRepository(FoxTalesDbContext db) : IDylematyRepository
     {
         return await _db.DylematyCards.ToListAsync();
     }
+
+    public async Task AddCard(DylematyCard card)
+    {
+        _db.DylematyCards.Add(card);
+        await _db.SaveChangesAsync();
+    }
 }

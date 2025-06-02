@@ -12,4 +12,9 @@ public class DylematyService(IDylematyRepository dylematyRepository) : IDylematy
         IEnumerable<DylematyCard> cards = await _dylematyRepository.GetAllCards();
         return cards;
     }
+
+    public async Task AddCard(DylematyCard card)
+    {
+        await _dylematyRepository.AddCard(card);
+    }
 }
