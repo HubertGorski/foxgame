@@ -1,9 +1,9 @@
-using FoxTales.Domain.Entities;
+using FoxTales.Application.DTOs;
 
 namespace FoxTales.Application.Interfaces;
 
 public interface IDylematyService
 {
-    Task<IEnumerable<DylematyCard>> GetAllCards();
-    Task AddCard(DylematyCard card);
+    Task<IEnumerable<DylematyCardDto>> GetAllCards();
+    Task AddCard(CreateDylematyCardDto card);
 }

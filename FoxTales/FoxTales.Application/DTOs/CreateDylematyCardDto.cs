@@ -1,10 +1,9 @@
 using FoxTales.Domain.Enums;
 
-namespace FoxTales.Domain.Entities;
+namespace FoxTales.Application.DTOs;
 
-public class DylematyCard
+public class CreateDylematyCardDto
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
     public string Text { get; set; } = null!;
     public DylematyCardType Type { get; set; }
 }

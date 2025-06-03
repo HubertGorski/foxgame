@@ -1,4 +1,4 @@
-using FoxTales.Domain.Entities; //TODO: use DTO or sth from FoxTales.Application
+using FoxTales.Application.DTOs;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +25,7 @@ namespace FoxTales.Api.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddCard([FromForm] DylematyCard card)
+        public async Task<IActionResult> AddCard([FromForm] CreateDylematyCardDto card)
         {
             try
             {
