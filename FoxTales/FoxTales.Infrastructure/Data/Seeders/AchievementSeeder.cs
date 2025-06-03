@@ -1,4 +1,4 @@
-using Hub.Identity.Entities;
+using FoxTales.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;

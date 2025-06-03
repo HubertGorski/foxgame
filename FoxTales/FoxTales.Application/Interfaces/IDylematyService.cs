@@ -1,4 +1,4 @@
-using FoxTales.Application.DTOs;
+using FoxTales.Application.DTOs.Dylematy;
 
 namespace FoxTales.Application.Interfaces;
 

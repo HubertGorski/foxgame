@@ -1,5 +1,5 @@
 using AutoMapper;
-using FoxTales.Application.DTOs;
+using FoxTales.Application.DTOs.Dylematy;
 using FoxTales.Domain.Entities;
 
 namespace FoxTales.Application.Mappings;

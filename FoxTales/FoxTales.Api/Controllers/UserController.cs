@@ -1,4 +1,5 @@
-using Hub.Identity.Interfaces;
+using FoxTales.Application.DTOs.User;
+using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoxTales.Api.Controllers;
@@ -10,11 +11,11 @@ public class UserController(IUserService userService) : ControllerBase
     private readonly IUserService _userService = userService;
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(string username, string email, string password)
+    public async Task<IActionResult> Register([FromForm] RegisterUserDto registerUserDto)
     {
         try
         {
-            await _userService.RegisterAsync(username, email, password);
+            await _userService.RegisterAsync(registerUserDto);
             return Ok("Registered");
         }
         catch (Exception ex)

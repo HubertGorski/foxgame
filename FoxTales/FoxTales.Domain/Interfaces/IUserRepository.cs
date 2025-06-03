@@ -1,6 +1,7 @@
-using Hub.Identity.Entities;
 
-namespace Hub.Identity.Interfaces;
+using FoxTales.Domain.Entities;
+
+namespace FoxTales.Domain.Interfaces;
 
 public interface IUserRepository
 {

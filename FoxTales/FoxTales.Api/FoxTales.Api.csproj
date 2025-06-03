@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Hub\Hub.Identity\Hub.Identity.csproj" />
     <ProjectReference Include="..\FoxTales.Application\FoxTales.Application.csproj" />
     <ProjectReference Include="..\FoxTales.Composition\FoxTales.Composition.csproj" />
   </ItemGroup>

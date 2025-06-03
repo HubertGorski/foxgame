@@ -1,4 +1,4 @@
-using FoxTales.Application.DTOs;
+using FoxTales.Application.DTOs.Dylematy;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

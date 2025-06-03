@@ -1,5 +1,3 @@
-using Hub.Identity.Interfaces;
-using Hub.Identity.Services;
 using FoxTales.Composition;
 using FoxTales.Application.Interfaces;
 using FoxTales.Application.Services;
@@ -13,6 +11,7 @@ builder.Services.AddScoped<IDylematyService, DylematyService>();
 builder.Services.AddAutoMapper(cfg => 
 {
     cfg.AddProfile<DylematyCardProfile>();
+    cfg.AddProfile<UserProfile>();
 });
 builder.Services.AddControllers();
 await builder.Services.SeedDatabaseAsync();

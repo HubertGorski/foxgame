@@ -1,6 +1,6 @@
+using FoxTales.Domain.Entities;
+using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
-using Hub.Identity.Entities;
-using Hub.Identity.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoxTales.Infrastructure.Repositories;

@@ -2,7 +2,6 @@ using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
-using Hub.Identity.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

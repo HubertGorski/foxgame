@@ -1,5 +1,4 @@
 using FoxTales.Domain.Entities;
-using Hub.Identity.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FoxTales.Infrastructure.Data;
@@ -19,7 +18,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.HasKey(u => u.Id);
             entity.HasIndex(u => u.Email).IsUnique();
             entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
-            entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.Password).IsRequired();
         });
 
         modelBuilder.Entity<Achievement>(entity =>

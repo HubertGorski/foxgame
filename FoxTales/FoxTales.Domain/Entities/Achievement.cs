@@ -1,4 +1,4 @@
-namespace Hub.Identity.Entities;
+namespace FoxTales.Domain.Entities;
 
 public class Achievement
 {
