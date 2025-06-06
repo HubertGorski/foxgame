@@ -5,6 +5,9 @@ namespace FoxTales.Domain.Entities;
 public class DylematyCard
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public string Text { get; set; } = null!;
+    public required string Text { get; set; }
     public DylematyCardType Type { get; set; }
+
+    public required Guid OwnerId { get; set; }
+    public required virtual User Owner { get; set; }
 }

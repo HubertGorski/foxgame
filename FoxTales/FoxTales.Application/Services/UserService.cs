@@ -1,5 +1,6 @@
 using AutoMapper;
 using FoxTales.Application.DTOs.User;
+using FoxTales.Application.DTOs.UserCard;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
@@ -20,9 +21,15 @@ public class UserService(IUserRepository userRepository, IMapper mapper) : IUser
         await _userRepository.AddAsync(user);
     }
 
-    public async Task<IEnumerable<UserDto>> GetAllUsers()
+    public async Task<ICollection<UserDto>> GetAllUsers()
     {
-        IEnumerable<User> users = await _userRepository.GetAllUsers();
-        return _mapper.Map<List<UserDto>>(users);
+        ICollection<User> users = await _userRepository.GetAllUsers();
+        return _mapper.Map<ICollection<UserDto>>(users);
     }
+
+    public async Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards()
+{
+    var users = await _userRepository.GetAllUsersWithCards();
+    return _mapper.Map<ICollection<UserWithCardsDto>>(users);
+}
 }

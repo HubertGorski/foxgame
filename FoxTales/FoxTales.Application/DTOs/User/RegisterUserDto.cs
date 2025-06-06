@@ -2,7 +2,7 @@ namespace FoxTales.Application.DTOs.User;
 
 public class RegisterUserDto
 {
-    public string Username { get; set; } = null!;
-    public string Email { get; set; } = null!;
-    public string Password { get; set; } = null!;
+    public required string Username { get; set; }
+    public required string Email { get; set; }
+    public required string Password { get; set; }
 }

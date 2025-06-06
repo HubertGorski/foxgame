@@ -8,7 +8,7 @@ namespace FoxTales.Infrastructure.Repositories;
 public class EfDylematyRepository(FoxTalesDbContext db) : IDylematyRepository
 {
     private readonly FoxTalesDbContext _db = db;
-    public async Task<IEnumerable<DylematyCard>> GetAllCards()
+    public async Task<ICollection<DylematyCard>> GetAllCards()
     {
         return await _db.DylematyCards.ToListAsync();
     }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    [Migration("20250602190010_add")]
-    partial class add
+    [Migration("20250605205459_init2")]
+    partial class init2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,27 +25,7 @@ namespace FoxTales.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("Type")
-                        .HasMaxLength(32)
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DylematyCards", (string)null);
-                });
-
-            modelBuilder.Entity("Hub.Identity.Entities.Achievement", b =>
+            modelBuilder.Entity("FoxTales.Domain.Entities.Achievement", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -74,7 +54,32 @@ namespace FoxTales.Infrastructure.Migrations
                     b.ToTable("Achievements", (string)null);
                 });
 
-            modelBuilder.Entity("Hub.Identity.Entities.User", b =>
+            modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("Type")
+                        .HasMaxLength(32)
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("DylematyCards", (string)null);
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -85,7 +90,7 @@ namespace FoxTales.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -99,6 +104,22 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.User", "Owner")
+                        .WithMany("Cards")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Cards");
                 });
 #pragma warning restore 612, 618
         }

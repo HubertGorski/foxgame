@@ -11,10 +11,10 @@ public class DylematyService(IDylematyRepository dylematyRepository, IMapper map
     private readonly IDylematyRepository _dylematyRepository = dylematyRepository;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<IEnumerable<DylematyCardDto>> GetAllCards()
+    public async Task<ICollection<DylematyCardDto>> GetAllCards()
     {
-        IEnumerable<DylematyCard> cards = await _dylematyRepository.GetAllCards();
-        return _mapper.Map<List<DylematyCardDto>>(cards);
+        ICollection<DylematyCard> cards = await _dylematyRepository.GetAllCards();
+        return _mapper.Map<ICollection<DylematyCardDto>>(cards);
     }
 
     public async Task AddCard(CreateDylematyCardDto createDylematyCardDto)

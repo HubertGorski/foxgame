@@ -20,9 +20,16 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return await _db.Users.FirstOrDefaultAsync(u => u.Username == username);
     }
 
-    public async Task<IEnumerable<User>> GetAllUsers()
+    public async Task<ICollection<User>> GetAllUsers()
     {
         return await _db.Users.ToListAsync();
+    }
+
+    public async Task<ICollection<User>> GetAllUsersWithCards()
+    {
+        return await _db.Users
+            .Include(u => u.Cards)
+            .ToListAsync();
     }
 
     public async Task<bool> ExistsByUsernameAsync(string username)

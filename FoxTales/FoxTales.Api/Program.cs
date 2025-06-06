@@ -12,6 +12,7 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<DylematyCardProfile>();
     cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<UserCardProfile>();
 });
 builder.Services.AddControllers();
 await builder.Services.SeedDatabaseAsync();

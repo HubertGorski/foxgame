@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    [Migration("20250603191323_rename")]
-    partial class rename
+    [Migration("20250605204545_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,6 +60,9 @@ namespace FoxTales.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -70,6 +73,8 @@ namespace FoxTales.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("DylematyCards", (string)null);
                 });
@@ -99,6 +104,22 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.User", "Owner")
+                        .WithMany("Cards")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
+                {
+                    b.Navigation("Cards");
                 });
 #pragma warning restore 612, 618
         }

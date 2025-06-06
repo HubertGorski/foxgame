@@ -37,4 +37,18 @@ public class UserController(IUserService userService) : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    [HttpGet("getWithCards")]
+    public async Task<IActionResult> GetAllUsersWithCards()
+    {
+        try
+        {
+            var users = await _userService.GetAllUsersWithCards();
+            return Ok(users);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }
