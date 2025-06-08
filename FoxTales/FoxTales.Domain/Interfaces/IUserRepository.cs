@@ -7,6 +7,7 @@ public interface IUserRepository
 {
     Task<User?> GetByUsernameAsync(string username);
     Task<ICollection<User>> GetAllUsers();
+    Task<User?> GetUserById(Guid id);
     Task<ICollection<User>> GetAllUsersWithCards();
     Task AddAsync(User user);
     Task<bool> ExistsByUsernameAsync(string username);

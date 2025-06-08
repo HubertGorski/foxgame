@@ -1,4 +1,5 @@
 using System.Net;
+using FoxTales.Application.Exceptions;
 
 namespace FoxTales.Api.Middleware
 {
@@ -11,6 +12,12 @@ namespace FoxTales.Api.Middleware
             try
             {
                 await next.Invoke(context);
+            }
+            catch (NotFoundException e)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                _logger.LogError(e, e.Message);
+                await context.Response.WriteAsync(e.Message);
             }
             catch (Exception e)
             {

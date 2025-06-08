@@ -1,6 +1,7 @@
 using AutoMapper;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
+using FoxTales.Application.Exceptions;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
@@ -27,9 +28,19 @@ public class UserService(IUserRepository userRepository, IMapper mapper) : IUser
         return _mapper.Map<ICollection<UserDto>>(users);
     }
 
+    public async Task<UserDto> GetUserById(Guid id)
+    {
+        User? user = await _userRepository.GetUserById(id);
+        if (user is null)
+        {
+            throw new NotFoundException("User doesn't exist!");
+        }
+        return _mapper.Map<UserDto>(user);
+    }
+
     public async Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards()
-{
-    var users = await _userRepository.GetAllUsersWithCards();
-    return _mapper.Map<ICollection<UserWithCardsDto>>(users);
-}
+    {
+        var users = await _userRepository.GetAllUsersWithCards();
+        return _mapper.Map<ICollection<UserWithCardsDto>>(users);
+    }
 }
