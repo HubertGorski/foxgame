@@ -2,17 +2,17 @@ using FoxTales.Composition;
 using FoxTales.Application.Interfaces;
 using FoxTales.Application.Services;
 using FoxTales.Application.Mappings;
-using NLog.Web;
 using FoxTales.Api.Middleware;
+using FoxTales.Api.Platform;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-builder.Host.UseNLog();
+builder.ConfigureLogging();
 
-builder.Services.AddInfrastructure(builder.Configuration);
+await builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDylematyService, DylematyService>();
+
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<DylematyCardProfile>();
@@ -23,7 +23,6 @@ builder.Services.AddAutoMapper(cfg =>
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 builder.Services.AddControllers();
-await builder.Services.SeedDatabaseAsync();
 
 var app = builder.Build();
 

@@ -10,17 +10,12 @@ public class AchievementSeeder(FoxTalesDbContext context, ILogger<AchievementSee
 
     public async Task SeedAsync()
     {
-        if (!await _context.Database.CanConnectAsync())
-        {
-            _logger.LogWarning("A connection to the database cannot be made");
-            return;
-        }
-
         if (!_context.Achievements.Any())
         {
             IEnumerable<Achievement> achievements = GetAchievements();
             await _context.Achievements.AddRangeAsync(achievements);
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Database seeding completed successfully");
         }
     }
 

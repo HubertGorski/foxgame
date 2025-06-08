@@ -10,7 +10,7 @@ namespace FoxTales.Composition;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<FoxTalesDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("Default")));
@@ -21,10 +21,11 @@ public static class DependencyInjection
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();
 
+        await services.SeedDatabaseAsync();
         return services;
     }
 
-    public static async Task SeedDatabaseAsync(this IServiceCollection services)
+    private static async Task SeedDatabaseAsync(this IServiceCollection services)
     {
         using var serviceProvider = services.BuildServiceProvider();
         await using var scope = serviceProvider.CreateAsyncScope();

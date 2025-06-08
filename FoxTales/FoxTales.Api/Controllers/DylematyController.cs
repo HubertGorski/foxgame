@@ -13,29 +13,15 @@ namespace FoxTales.Api.Controllers
         [HttpGet("get")]
         public async Task<IActionResult> GetAllCards()
         {
-            try
-            {
-                var cards = await _dylematyService.GetAllCards();
-                return Ok(cards);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var cards = await _dylematyService.GetAllCards();
+            return Ok(cards);
         }
 
         [HttpPost("add")]
         public async Task<IActionResult> AddCard([FromForm] CreateDylematyCardDto card)
         {
-            try
-            {
-                await _dylematyService.AddCard(card);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await _dylematyService.AddCard(card);
+            return Ok();
         }
     }
 }

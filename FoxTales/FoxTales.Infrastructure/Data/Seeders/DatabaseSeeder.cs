@@ -2,25 +2,20 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder)
+public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder)
 {
+    private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<DatabaseSeeder> _logger = logger;
     private readonly AchievementSeeder _achievementSeeder = achievementSeeder;
 
     public async Task SeedAsync()
     {
-        try
+        if (!await _context.Database.CanConnectAsync())
         {
-            _logger.LogInformation("Starting database seeding...");
-
-            await _achievementSeeder.SeedAsync();
-
-            _logger.LogInformation("Database seeding completed successfully");
+            _logger.LogError("A connection to the database cannot be made");
+            return;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred during database seeding");
-            throw;
-        }
+
+        await _achievementSeeder.SeedAsync();
     }
 }

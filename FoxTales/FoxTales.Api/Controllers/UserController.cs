@@ -13,42 +13,21 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromForm] RegisterUserDto registerUserDto)
     {
-        try
-        {
-            await _userService.RegisterAsync(registerUserDto);
-            return Ok("Registered");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _userService.RegisterAsync(registerUserDto);
+        return Ok("Registered");
     }
 
     [HttpGet("get")]
     public async Task<IActionResult> GetAllUsers()
     {
-        try
-        {
-            var users = await _userService.GetAllUsers();
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var users = await _userService.GetAllUsers();
+        return Ok(users);
     }
 
     [HttpGet("getWithCards")]
     public async Task<IActionResult> GetAllUsersWithCards()
     {
-        try
-        {
-            var users = await _userService.GetAllUsersWithCards();
-            return Ok(users);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var users = await _userService.GetAllUsersWithCards();
+        return Ok(users);
     }
 }
