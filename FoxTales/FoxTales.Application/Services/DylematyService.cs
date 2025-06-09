@@ -1,12 +1,13 @@
 using AutoMapper;
 using FoxTales.Application.DTOs.Dylematy;
+using FoxTales.Application.Exceptions;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
 
 namespace FoxTales.Application.Services;
 
-public class DylematyService(IDylematyRepository dylematyRepository, IMapper mapper) : IDylematyService
+public class DylematyService(IDylematyRepository dylematyRepository, IUserRepository _userRepository, IMapper mapper) : IDylematyService
 {
     private readonly IDylematyRepository _dylematyRepository = dylematyRepository;
     private readonly IMapper _mapper = mapper;
@@ -19,6 +20,7 @@ public class DylematyService(IDylematyRepository dylematyRepository, IMapper map
 
     public async Task AddCard(CreateDylematyCardDto createDylematyCardDto)
     {
+        User? _ = await _userRepository.GetUserById(createDylematyCardDto.OwnerId) ?? throw new NotFoundException("User doesn't exist!");
         DylematyCard card = _mapper.Map<DylematyCard>(createDylematyCardDto);
         await _dylematyRepository.AddCard(card);
     }

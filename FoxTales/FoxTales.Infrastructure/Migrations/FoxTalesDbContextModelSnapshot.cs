@@ -24,7 +24,7 @@ namespace FoxTales.Infrastructure.Migrations
 
             modelBuilder.Entity("FoxTales.Domain.Entities.Achievement", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("AchievementId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -46,14 +46,14 @@ namespace FoxTales.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.HasKey("Id");
+                    b.HasKey("AchievementId");
 
                     b.ToTable("Achievements", (string)null);
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("CardId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -69,18 +69,34 @@ namespace FoxTales.Infrastructure.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.HasKey("CardId");
 
                     b.HasIndex("OwnerId");
 
                     b.ToTable("DylematyCards", (string)null);
                 });
 
-            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
+            modelBuilder.Entity("FoxTales.Domain.Entities.Role", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("RoleId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("RoleId");
+
+                    b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -91,14 +107,19 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId");
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -112,6 +133,17 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>

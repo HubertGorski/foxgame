@@ -4,7 +4,7 @@ namespace FoxTales.Domain.Entities;
 
 public class DylematyCard
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid CardId { get; set; } = Guid.NewGuid();
     public required string Text { get; set; }
     public DylematyCardType Type { get; set; }
 

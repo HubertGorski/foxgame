@@ -24,10 +24,10 @@ public class UserController(IUserService userService) : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("get/{id}")]
-    public async Task<IActionResult> GetUserById(Guid id)
+    [HttpGet("get/{userId}")]
+    public async Task<IActionResult> GetUserById(Guid userId)
     {
-        var users = await _userService.GetUserById(id);
+        var users = await _userService.GetUserById(userId);
         return Ok(users);
     }
 

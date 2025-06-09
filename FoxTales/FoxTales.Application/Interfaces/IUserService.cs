@@ -7,6 +7,6 @@ public interface IUserService
 {
     Task RegisterAsync(RegisterUserDto registerUserDto);
     Task<ICollection<UserDto>> GetAllUsers();
-    Task<UserDto> GetUserById(Guid id);
+    Task<UserDto> GetUserById(Guid userId);
     Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards();
 }
