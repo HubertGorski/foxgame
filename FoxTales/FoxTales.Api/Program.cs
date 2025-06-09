@@ -1,7 +1,7 @@
 using FoxTales.Composition;
-using FoxTales.Application.Mappings;
 using FoxTales.Api.Middleware;
 using FoxTales.Api.Platform;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,17 +10,10 @@ builder.ConfigureLogging();
 await builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddProfile<DylematyCardProfile>();
-    cfg.AddProfile<UserProfile>();
-    cfg.AddProfile<UserCardProfile>();
-});
-
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddScoped<RequestTimeMiddleware>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddFluentValidation();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

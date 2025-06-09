@@ -17,12 +17,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
     public async Task RegisterAsync(RegisterUserDto registerUserDto)
     {
-        if (await _userRepository.ExistsByUsernameAsync(registerUserDto.Username))
-            throw new UserAlreadyExistsException("username", registerUserDto.Username);
-
-        if (await _userRepository.ExistsByEmailAsync(registerUserDto.Email))
-            throw new UserAlreadyExistsException("email", registerUserDto.Email);
-
         User user = _mapper.Map<User>(registerUserDto);
         user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
         await _userRepository.AddAsync(user);

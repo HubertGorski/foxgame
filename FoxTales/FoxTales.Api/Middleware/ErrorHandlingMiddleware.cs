@@ -19,7 +19,7 @@ namespace FoxTales.Api.Middleware
                 _logger.LogError(e, e.Message);
                 await context.Response.WriteAsync(e.Message);
             }
-            catch (UserAlreadyExistsException e)
+            catch (ConflictException e)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Conflict;
                 _logger.LogWarning(e, e.Message);

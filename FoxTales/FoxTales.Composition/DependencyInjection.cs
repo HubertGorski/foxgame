@@ -1,5 +1,11 @@
+using System.Reflection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
+using FoxTales.Application.Mappings;
 using FoxTales.Application.Services;
+using FoxTales.Application.Validators.User;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
@@ -19,6 +25,14 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+        services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+        services.AddAutoMapper(cfg =>
+            {
+                cfg.AddProfile<DylematyCardProfile>();
+                cfg.AddProfile<UserProfile>();
+                cfg.AddProfile<UserCardProfile>();
+            });
 
         return services;
     }
