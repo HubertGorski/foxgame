@@ -1,9 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FoxTales.Domain.Entities;
 
 public class Achievement
 {
 
-    public Guid AchievementId { get; set; } = Guid.NewGuid();
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int AchievementId { get; set; }
     public required string Title { get; set; }
     public required string Subtitle { get; set; }
     public required string Description { get; set; }

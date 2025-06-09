@@ -1,7 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace FoxTales.Domain.Entities;
 
 public class Role
 {
-    public Guid RoleId { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int RoleId { get; set; }
     public required string Name { get; set; }
 }

@@ -17,7 +17,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.UserId);
-            entity.Property(u => u.UserId).HasDefaultValueSql("NEWID()");
+            entity.Property(u => u.UserId).ValueGeneratedOnAdd();
             entity.HasIndex(u => u.Email).IsUnique();
             entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
             entity.Property(u => u.Password).IsRequired();
@@ -27,6 +27,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         {
             entity.ToTable("Roles");
             entity.HasKey(u => u.RoleId);
+            entity.Property(u => u.RoleId).ValueGeneratedOnAdd();
             entity.Property(u => u.Name).IsRequired();
         });
 
@@ -34,6 +35,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         {
             entity.ToTable("Achievements");
             entity.HasKey(u => u.AchievementId);
+            entity.Property(u => u.AchievementId).ValueGeneratedOnAdd();
             entity.Property(u => u.Title).IsRequired().HasMaxLength(32);
             entity.Property(u => u.Subtitle).IsRequired().HasMaxLength(124);
             entity.Property(u => u.Description).IsRequired().HasMaxLength(256);
@@ -43,6 +45,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         {
             entity.ToTable("DylematyCards");
             entity.HasKey(u => u.CardId);
+            entity.Property(u => u.CardId).ValueGeneratedOnAdd();
             entity.Property(u => u.Text).IsRequired().HasMaxLength(256);
             entity.Property(u => u.Type).IsRequired().HasMaxLength(32);
             entity.HasOne(c => c.Owner)

@@ -28,7 +28,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper) : IUser
         return _mapper.Map<ICollection<UserDto>>(users);
     }
 
-    public async Task<UserDto> GetUserById(Guid userId)
+    public async Task<UserDto> GetUserById(int userId)
     {
         User? user = await _userRepository.GetUserById(userId) ?? throw new NotFoundException("User doesn't exist!");
         return _mapper.Map<UserDto>(user);
