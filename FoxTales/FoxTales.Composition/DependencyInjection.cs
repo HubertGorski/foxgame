@@ -1,7 +1,11 @@
+using FoxTales.Application.Interfaces;
+using FoxTales.Application.Services;
+using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +14,15 @@ namespace FoxTales.Composition;
 
 public static class DependencyInjection
 {
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IDylematyService, DylematyService>();
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+        return services;
+    }
+
     public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<FoxTalesDbContext>(options =>
@@ -20,6 +33,7 @@ public static class DependencyInjection
 
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();
+        services.AddTransient<RoleSeeder>();
 
         await services.SeedDatabaseAsync();
         return services;

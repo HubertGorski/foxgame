@@ -25,17 +25,14 @@ public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger)
             {
                 new()
                 {
-                    RoleId = 1,
                     Name = "User",
                 },
                 new()
                 {
-                    RoleId = 2,
                     Name = "Super User",
                 },
                 new()
                 {
-                    RoleId = 3,
                     Name = "Admin",
                 }
             };

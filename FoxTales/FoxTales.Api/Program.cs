@@ -1,6 +1,4 @@
 using FoxTales.Composition;
-using FoxTales.Application.Interfaces;
-using FoxTales.Application.Services;
 using FoxTales.Application.Mappings;
 using FoxTales.Api.Middleware;
 using FoxTales.Api.Platform;
@@ -10,8 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureLogging();
 
 await builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IDylematyService, DylematyService>();
+builder.Services.AddApplication();
 
 builder.Services.AddAutoMapper(cfg =>
 {

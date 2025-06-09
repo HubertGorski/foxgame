@@ -20,7 +20,8 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(u => u.UserId).ValueGeneratedOnAdd();
             entity.HasIndex(u => u.Email).IsUnique();
             entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
-            entity.Property(u => u.Password).IsRequired();
+            entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.RoleId).IsRequired().HasDefaultValue(1);
         });
 
         modelBuilder.Entity<Role>(entity =>

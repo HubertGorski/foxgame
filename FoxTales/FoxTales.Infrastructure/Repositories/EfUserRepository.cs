@@ -41,4 +41,9 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     {
         return await _db.Users.AnyAsync(u => u.Username == username);
     }
+
+    public async Task<bool> ExistsByEmailAsync(string email)
+    {
+        return await _db.Users.AnyAsync(u => u.Email == email);
+    }
 }

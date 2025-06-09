@@ -10,4 +10,8 @@
     <ProjectReference Include="..\FoxTales.Infrastructure\FoxTales.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+  </ItemGroup>
+
 </Project>

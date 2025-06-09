@@ -11,4 +11,5 @@ public interface IUserRepository
     Task<ICollection<User>> GetAllUsersWithCards();
     Task AddAsync(User user);
     Task<bool> ExistsByUsernameAsync(string username);
+    Task<bool> ExistsByEmailAsync(string email);
 }
