@@ -55,9 +55,10 @@ public static class DependencyInjection
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateLifetime = false,
                 SaveSigninToken = true,
                 ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.FromMinutes(5),
                 ValidIssuer = jwtSettings.Issuer,
                 ValidAudience = jwtSettings.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(

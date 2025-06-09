@@ -31,6 +31,12 @@ namespace FoxTales.Api.Middleware
                 _logger.LogWarning(e, e.Message);
                 await context.Response.WriteAsync(e.Message);
             }
+            catch (AuthorizationException e)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                _logger.LogError(e, e.Message);
+                await context.Response.WriteAsync(e.Message);
+            }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);
