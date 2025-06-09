@@ -1,20 +1,33 @@
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoxTales.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UserController(IUserService userService) : ControllerBase
+[Authorize]
+public class UserController(IUserService userService, IJwtTokenGenerator tokenGenerator) : ControllerBase
 {
     private readonly IUserService _userService = userService;
+    private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;
 
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromForm] RegisterUserDto registerUserDto)
     {
         await _userService.RegisterAsync(registerUserDto);
         return Ok("Registered");
+    }
+
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Login([FromForm] LoginUserDto loginUserDto)
+    {
+        var claims = await _userService.GenerateClaims(loginUserDto);
+        string token = _tokenGenerator.GenerateToken(claims);
+        return Ok(token);
     }
 
     [HttpGet("get")]

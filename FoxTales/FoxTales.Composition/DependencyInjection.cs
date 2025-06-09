@@ -1,7 +1,9 @@
-using System.Reflection;
+using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using FoxTales.Application.DTOs.User;
+using FoxTales.Application.Exceptions;
+using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces;
 using FoxTales.Application.Mappings;
 using FoxTales.Application.Services;
@@ -11,20 +13,25 @@ using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using FoxTales.Infrastructure.Data.Seeders;
 using FoxTales.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FoxTales.Composition;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+        services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
         services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
         services.AddAutoMapper(cfg =>
@@ -33,6 +40,30 @@ public static class DependencyInjection
                 cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<UserCardProfile>();
             });
+
+        JwtSettings jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
+
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                SaveSigninToken = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings.Issuer,
+                ValidAudience = jwtSettings.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSettings.Key))
+            };
+        });
 
         return services;
     }

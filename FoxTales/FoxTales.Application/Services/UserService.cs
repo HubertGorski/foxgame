@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
@@ -38,5 +39,19 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     {
         var users = await _userRepository.GetAllUsersWithCards();
         return _mapper.Map<ICollection<UserWithCardsDto>>(users);
+    }
+
+    public async Task<ICollection<Claim>> GenerateClaims(LoginUserDto loginUserDto)
+    {
+        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new NotFoundException("Invalid username or password");
+        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
+
+        if (result == PasswordVerificationResult.Failed) throw new NotFoundException("Invalid username or password");
+
+        return [
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, user.Role.Name),
+        ];
     }
 }

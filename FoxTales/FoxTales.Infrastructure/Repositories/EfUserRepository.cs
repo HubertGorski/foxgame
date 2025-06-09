@@ -30,6 +30,11 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
+    public async Task<User?> GetUserByEmail(string email)
+    {
+        return await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
+    }
+
     public async Task<ICollection<User>> GetAllUsersWithCards()
     {
         return await _db.Users
