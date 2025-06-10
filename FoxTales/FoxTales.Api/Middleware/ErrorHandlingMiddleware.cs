@@ -19,6 +19,12 @@ namespace FoxTales.Api.Middleware
                 _logger.LogError(e, e.Message);
                 await context.Response.WriteAsync(e.Message);
             }
+            catch (Unauthorized e)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                _logger.LogError(e, e.Message);
+                await context.Response.WriteAsync(e.Message);
+            }
             catch (ConflictException e)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.Conflict;

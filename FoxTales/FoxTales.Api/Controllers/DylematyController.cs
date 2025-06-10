@@ -18,7 +18,7 @@ namespace FoxTales.Api.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddCard([FromForm] CreateDylematyCardDto card)
+        public async Task<IActionResult> AddCard([FromBody] CreateDylematyCardDto card)
         {
             await _dylematyService.AddCard(card);
             return Ok();

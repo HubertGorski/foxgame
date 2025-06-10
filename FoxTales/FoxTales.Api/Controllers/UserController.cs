@@ -15,7 +15,7 @@ public class UserController(IUserService userService, IJwtTokenGenerator tokenGe
 
     [HttpPost("register")]
     [AllowAnonymous]
-    public async Task<IActionResult> Register([FromForm] RegisterUserDto registerUserDto)
+    public async Task<IActionResult> Register([FromBody] RegisterUserDto registerUserDto)
     {
         await _userService.RegisterAsync(registerUserDto);
         return Ok("Registered");
@@ -23,7 +23,7 @@ public class UserController(IUserService userService, IJwtTokenGenerator tokenGe
 
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login([FromForm] LoginUserDto loginUserDto)
+    public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
         var claims = await _userService.GenerateClaims(loginUserDto);
         string token = _tokenGenerator.GenerateToken(claims);

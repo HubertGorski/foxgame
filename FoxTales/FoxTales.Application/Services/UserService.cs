@@ -43,10 +43,10 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
     public async Task<ICollection<Claim>> GenerateClaims(LoginUserDto loginUserDto)
     {
-        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new NotFoundException("Invalid username or password");
+        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new Unauthorized("Invalid username or password");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
 
-        if (result == PasswordVerificationResult.Failed) throw new NotFoundException("Invalid username or password");
+        if (result == PasswordVerificationResult.Failed) throw new Unauthorized("Invalid username or password");
 
         return [
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
