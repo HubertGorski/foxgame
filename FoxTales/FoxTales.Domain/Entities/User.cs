@@ -15,4 +15,5 @@ public class User
     public virtual Role Role { get; set; } = null!;
 
     public ICollection<DylematyCard> Cards { get; set; } = [];
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 }

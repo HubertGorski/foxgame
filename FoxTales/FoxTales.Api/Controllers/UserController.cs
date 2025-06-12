@@ -1,17 +1,19 @@
+using FoxTales.Api.Filters;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FoxTales.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UserController(IUserService userService, IJwtTokenGenerator tokenGenerator) : ControllerBase
+public class UserController(IUserService userService) : ControllerBase
 {
+    private const string RefreshToken = "refreshToken";
     private readonly IUserService _userService = userService;
-    private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;
 
     [HttpPost("register")]
     [AllowAnonymous]
@@ -23,11 +25,37 @@ public class UserController(IUserService userService, IJwtTokenGenerator tokenGe
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("LoginPolicy")]
+    [RejectIfAuthenticated]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
-        var claims = await _userService.GenerateClaims(loginUserDto);
-        string token = _tokenGenerator.GenerateToken(claims);
-        return Ok(token);
+        TokensResponseDto tokens = await _userService.Login(loginUserDto);
+        Response.Cookies.Append(RefreshToken, tokens.RefreshToken.Token, tokens.Options);
+        return Ok(tokens.AccessToken);
+
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        if (!Request.Cookies.TryGetValue(RefreshToken, out var refreshToken))
+            return Unauthorized();
+
+        await _userService.Logout(refreshToken);
+        Response.Cookies.Delete(RefreshToken);
+        return NoContent();
+    }
+
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RefreshSession()
+    {
+        if (!Request.Cookies.TryGetValue(RefreshToken, out var refreshToken))
+            return Unauthorized();
+
+        TokensResponseDto tokens = await _userService.GenerateNewTokens(refreshToken);
+        Response.Cookies.Append(RefreshToken, tokens.RefreshToken.Token, tokens.Options);
+        return Ok(tokens.AccessToken);
     }
 
     [HttpGet("get")]

@@ -2,9 +2,9 @@ using System.Diagnostics;
 
 namespace FoxTales.Api.Middleware;
 
-public class RequestTimeMiddleware(ILogger<RequestTimeMiddleware> logger) : IMiddleware
+public class RequestMiddleware(ILogger<RequestMiddleware> logger) : IMiddleware
 {
-    private readonly ILogger<RequestTimeMiddleware> _logger = logger;
+    private readonly ILogger<RequestMiddleware> _logger = logger;
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

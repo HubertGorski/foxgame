@@ -9,6 +9,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<Achievement> Achievements { get; set; }
     public DbSet<DylematyCard> DylematyCards { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +41,16 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(u => u.Title).IsRequired().HasMaxLength(32);
             entity.Property(u => u.Subtitle).IsRequired().HasMaxLength(124);
             entity.Property(u => u.Description).IsRequired().HasMaxLength(256);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasKey(u => u.TokenId);
+            entity.HasOne(rt => rt.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<DylematyCard>(entity =>

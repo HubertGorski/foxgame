@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using AutoMapper;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
@@ -10,11 +9,12 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FoxTales.Application.Services;
 
-public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher) : IUserService
+public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IJwtTokenGenerator tokenGenerator) : IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
+    private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;
 
     public async Task RegisterAsync(RegisterUserDto registerUserDto)
     {
@@ -41,17 +41,40 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return _mapper.Map<ICollection<UserWithCardsDto>>(users);
     }
 
-    public async Task<ICollection<Claim>> GenerateClaims(LoginUserDto loginUserDto)
+    private async Task<TokensResponseDto> GetTokens(User user)
     {
-        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new Unauthorized("Invalid username or password");
+        TokensResponseDto tokens = _tokenGenerator.GetTokens(user);
+        await _userRepository.StoreRefreshToken(tokens.RefreshToken);
+        return tokens;
+    }
+
+    public async Task<TokensResponseDto> Login(LoginUserDto loginUserDto)
+    {
+        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException("Invalid username or password");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
+        if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException("Invalid username or password");
 
-        if (result == PasswordVerificationResult.Failed) throw new Unauthorized("Invalid username or password");
+        return await GetTokens(user);
+    }
 
-        return [
-            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role.Name),
-        ];
+    public async Task<TokensResponseDto> GenerateNewTokens(string refreshToken)
+    {
+        RefreshToken tokenEntity = await _userRepository.GetRefreshTokenWithUser(refreshToken);
+
+        if (tokenEntity.ExpiryDate <= DateTime.UtcNow || tokenEntity.IsRevoked)
+            throw new UnauthorizedException("Invalid or expired refresh token");
+
+        await _userRepository.RevokeRefreshToken(tokenEntity);
+        return await GetTokens(tokenEntity.User);
+    }
+
+    public async Task Logout(string refreshToken)
+    {
+        RefreshToken tokenEntity = await _userRepository.GetRefreshTokenWithUser(refreshToken);
+
+        if (tokenEntity.ExpiryDate <= DateTime.UtcNow || tokenEntity.IsRevoked)
+            throw new UnauthorizedException("Invalid or expired refresh token");
+
+        await _userRepository.RevokeRefreshToken(tokenEntity);
     }
 }

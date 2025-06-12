@@ -9,8 +9,11 @@ public interface IUserRepository
     Task<ICollection<User>> GetAllUsers();
     Task<User?> GetUserById(int userId);
     Task<ICollection<User>> GetAllUsersWithCards();
-    Task AddAsync(User user);
+    Task<int> AddAsync(User user);
     Task<bool> ExistsByUsernameAsync(string username);
     Task<bool> ExistsByEmailAsync(string email);
     Task<User?> GetUserByEmail(string email);
+    Task<int> StoreRefreshToken(RefreshToken refreshToken);
+    Task<RefreshToken> GetRefreshTokenWithUser(string refreshToken);
+    Task RevokeRefreshToken(RefreshToken tokenEntity);
 }

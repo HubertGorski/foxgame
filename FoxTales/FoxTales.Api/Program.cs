@@ -2,6 +2,7 @@ using FoxTales.Composition;
 using FoxTales.Api.Middleware;
 using FoxTales.Api.Platform;
 using FluentValidation.AspNetCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,7 @@ await builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication(builder.Configuration);
 
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
-builder.Services.AddScoped<RequestTimeMiddleware>();
+builder.Services.AddScoped<RequestMiddleware>();
 
 builder.Services.AddControllers().AddFluentValidation(); //TODO: Zmienic na nowsze
 
@@ -29,6 +30,18 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("LoginPolicy", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter("Login", _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        }));
+});
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -41,7 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseMiddleware<RequestTimeMiddleware>();
+app.UseMiddleware<RequestMiddleware>();
 app.UseRouting();
 app.UseCors("VueCorsPolicy");
 app.UseHttpsRedirection();
