@@ -21,7 +21,7 @@ public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
             .WithMessage("Username jest już zajęty"); //TODO: Dodac dicty
 
         RuleFor(x => x.Password).MinimumLength(6);
-        RuleFor(x => x.ConfirmPassword).Equal(e => e.Password);
+        RuleFor(x => x.ConfirmPassword).Equal(e => e.Password).WithMessage("Podane hasła nie są identyczne"); //TODO: Dodac dicty
     }
 
     private static bool ExistsByEmailAsync(string email, IUserRepository userRepository)
