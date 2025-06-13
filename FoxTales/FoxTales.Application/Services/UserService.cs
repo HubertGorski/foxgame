@@ -48,13 +48,20 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return tokens;
     }
 
-    public async Task<TokensResponseDto> Login(LoginUserDto loginUserDto)
+    public async Task<LoginUserResponseDto> Login(LoginUserDto loginUserDto)
     {
         User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException("Invalid username or password");
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
         if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException("Invalid username or password");
-
-        return await GetTokens(user);
+        TokensResponseDto tokens = await GetTokens(user);
+        return new()
+        {
+            UserId = user.UserId,
+            Username = user.Username,
+            Options = tokens.Options,
+            RefreshToken = tokens.RefreshToken,
+            AccessToken = tokens.AccessToken
+        };
     }
 
     public async Task<TokensResponseDto> GenerateNewTokens(string refreshToken)
@@ -76,5 +83,10 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             throw new UnauthorizedException("Invalid or expired refresh token");
 
         await _userRepository.RevokeRefreshToken(tokenEntity);
+    }
+
+    public async Task ClearTokens()
+    {
+        await _userRepository.ClearTokens();
     }
 }

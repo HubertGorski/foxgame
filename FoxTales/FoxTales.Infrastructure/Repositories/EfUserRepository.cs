@@ -75,4 +75,10 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
     }
 
+    public async Task ClearTokens()
+    {
+        _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
+        await _db.SaveChangesAsync();
+    }
+
 }

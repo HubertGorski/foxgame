@@ -25,13 +25,17 @@ public class UserController(IUserService userService) : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
-    [EnableRateLimiting("LoginPolicy")]
     [RejectIfAuthenticated]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
-        TokensResponseDto tokens = await _userService.Login(loginUserDto);
-        Response.Cookies.Append(RefreshToken, tokens.RefreshToken.Token, tokens.Options);
-        return Ok(tokens.AccessToken);
+        LoginUserResponseDto response = await _userService.Login(loginUserDto);
+        Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
+        return Ok(new
+        {
+            response.UserId,
+            response.Username,
+            response.AccessToken,
+        });
 
     }
 
@@ -56,6 +60,14 @@ public class UserController(IUserService userService) : ControllerBase
         TokensResponseDto tokens = await _userService.GenerateNewTokens(refreshToken);
         Response.Cookies.Append(RefreshToken, tokens.RefreshToken.Token, tokens.Options);
         return Ok(tokens.AccessToken);
+    }
+
+    [HttpPost("clearTokens")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ClearTokens()
+    {
+        await _userService.ClearTokens();
+        return Ok();
     }
 
     [HttpGet("get")]

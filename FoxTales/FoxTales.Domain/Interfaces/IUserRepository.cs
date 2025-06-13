@@ -16,4 +16,5 @@ public interface IUserRepository
     Task<int> StoreRefreshToken(RefreshToken refreshToken);
     Task<RefreshToken> GetRefreshTokenWithUser(string refreshToken);
     Task RevokeRefreshToken(RefreshToken tokenEntity);
+    Task ClearTokens();
 }

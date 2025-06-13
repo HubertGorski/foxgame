@@ -6,10 +6,11 @@ namespace FoxTales.Application.Interfaces;
 public interface IUserService
 {
     Task RegisterAsync(RegisterUserDto registerUserDto);
-    Task<TokensResponseDto> Login(LoginUserDto loginUserDto);
+    Task<LoginUserResponseDto> Login(LoginUserDto loginUserDto);
     Task<ICollection<UserDto>> GetAllUsers();
     Task<UserDto> GetUserById(int userId);
     Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards();
     Task<TokensResponseDto> GenerateNewTokens(string refreshToken);
     Task Logout(string refreshToken);
+    Task ClearTokens();
 }

@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace FoxTales.Application.DTOs.User;
 
 public class RegisterUserDto
