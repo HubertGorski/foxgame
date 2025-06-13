@@ -12,13 +12,13 @@ public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
             .NotEmpty()
             .EmailAddress()
             .Must(email => !ExistsByEmailAsync(email, userRepository))
-            .WithMessage("Email is already registered");
+            .WithMessage("Email jest już zajęty"); //TODO: Dodac dicty
 
         RuleFor(x => x.Username)
             .NotEmpty()
             .Length(3, 21)
             .Must(username => !ExistsByUsernameAsync(username, userRepository))
-            .WithMessage("Username already taken");
+            .WithMessage("Username jest już zajęty"); //TODO: Dodac dicty
 
         RuleFor(x => x.Password).MinimumLength(6);
         RuleFor(x => x.ConfirmPassword).Equal(e => e.Password);
