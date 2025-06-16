@@ -1,5 +1,6 @@
 using FluentValidation;
 using FoxTales.Application.DTOs.User;
+using FoxTales.Application.Helpers;
 using FoxTales.Domain.Interfaces;
 
 namespace FoxTales.Application.Validators.User;
@@ -9,19 +10,19 @@ public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
     public RegisterUserDtoValidator(IUserRepository userRepository)
     {
         RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
+            .NotEmpty().WithMessage(DictHelper.Validation.EmailCannotBeEmpty)
+            .EmailAddress().WithMessage(DictHelper.Validation.EmailFormatIsIncorrect)
             .Must(email => !ExistsByEmailAsync(email, userRepository))
-            .WithMessage("Email jest już zajęty"); //TODO: Dodac dicty
+            .WithMessage(DictHelper.Validation.EmailIsAlreadyTaken);
 
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .Length(3, 21)
+            .NotEmpty().WithMessage(DictHelper.Validation.UsernameCannotBeEmpty)
+            .Length(3, 21).WithMessage(DictHelper.Validation.UsernameFormatIsIncorrect)
             .Must(username => !ExistsByUsernameAsync(username, userRepository))
-            .WithMessage("Username jest już zajęty"); //TODO: Dodac dicty
+            .WithMessage(DictHelper.Validation.UsernameIsAlreadyTaken);
 
-        RuleFor(x => x.Password).MinimumLength(6);
-        RuleFor(x => x.ConfirmPassword).Equal(e => e.Password).WithMessage("Podane hasła nie są identyczne"); //TODO: Dodac dicty
+        RuleFor(x => x.Password).MinimumLength(6).WithMessage(DictHelper.Validation.PasswordIsTooShort);
+        RuleFor(x => x.ConfirmPassword).Equal(e => e.Password).WithMessage(DictHelper.Validation.PasswordsAreNotIdentical);
     }
 
     private static bool ExistsByEmailAsync(string email, IUserRepository userRepository)

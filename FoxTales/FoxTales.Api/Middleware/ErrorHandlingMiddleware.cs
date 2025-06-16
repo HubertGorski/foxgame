@@ -1,5 +1,6 @@
 using System.Net;
 using FoxTales.Application.Exceptions;
+using FoxTales.Application.Helpers;
 
 namespace FoxTales.Api.Middleware
 {
@@ -41,7 +42,7 @@ namespace FoxTales.Api.Middleware
             {
                 _logger.LogError(e, e.Message);
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                await context.Response.WriteAsync("Something went wrong");
+                await context.Response.WriteAsync(DictHelper.Validation.UnexpectedError);
             }
         }
     }

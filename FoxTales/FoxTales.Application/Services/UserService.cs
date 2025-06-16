@@ -2,6 +2,7 @@ using AutoMapper;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
 using FoxTales.Application.Exceptions;
+using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Interfaces;
@@ -50,9 +51,9 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
     public async Task<LoginUserResponseDto> Login(LoginUserDto loginUserDto)
     {
-        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException("Invalid username or password");
+        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
-        if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException("Invalid username or password");
+        if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         TokensResponseDto tokens = await GetTokens(user);
         return new()
         {
