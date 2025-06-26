@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();
         services.AddTransient<RoleSeeder>();
+        services.AddTransient<FoxGamesSeeder>();
 
         await services.SeedDatabaseAsync();
         return services;

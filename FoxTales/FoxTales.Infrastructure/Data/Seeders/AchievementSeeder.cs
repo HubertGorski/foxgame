@@ -12,10 +12,10 @@ public class AchievementSeeder(FoxTalesDbContext context, ILogger<AchievementSee
     {
         if (!_context.Achievements.Any())
         {
+            _logger.LogInformation("Start achievements seeding");
             IEnumerable<Achievement> achievements = GetAchievements();
             await _context.Achievements.AddRangeAsync(achievements);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Database seeding completed successfully");
         }
     }
 

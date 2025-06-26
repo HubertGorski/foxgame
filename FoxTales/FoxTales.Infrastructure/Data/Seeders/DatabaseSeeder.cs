@@ -2,11 +2,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder)
+public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder)
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<DatabaseSeeder> _logger = logger;
     private readonly AchievementSeeder _achievementSeeder = achievementSeeder;
+    private readonly FoxGamesSeeder _foxGamesSeeder = foxGamesSeeder;
     private readonly RoleSeeder _roleSeeder = roleSeeder;
 
     public async Task SeedAsync()
@@ -19,5 +20,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
 
         await _achievementSeeder.SeedAsync();
         await _roleSeeder.SeedAsync();
+        await _foxGamesSeeder.SeedAsync();
+        _logger.LogInformation("Database seeding completed successfully");
     }
 }
