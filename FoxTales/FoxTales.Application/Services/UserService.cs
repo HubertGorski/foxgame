@@ -38,7 +38,16 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     public async Task<ICollection<UserDto>> GetAllUsers()
     {
         ICollection<User> users = await _userRepository.GetAllUsers();
-        return _mapper.Map<ICollection<UserDto>>(users);
+        ICollection<UserDto> usersDtos = _mapper.Map<ICollection<UserDto>>(users);
+        foreach (var userDto in usersDtos)
+        {
+            foreach (var limitDto in userDto.UserLimits)
+            {
+                limitDto.ComputeClosestThreshold();
+            }
+        }
+
+        return usersDtos;
     }
 
     public async Task<UserDto> GetUserById(int userId)

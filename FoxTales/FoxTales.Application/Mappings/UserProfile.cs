@@ -13,5 +13,14 @@ public class UserProfile : Profile
 
         CreateMap<User, RegisterUserDto>()
             .ReverseMap();
+
+        CreateMap<UserLimit, UserLimitDto>()
+            .ForMember(dest => dest.ClosestThreshold, opt => opt.Ignore())
+            .ForMember(dest => dest.Thresholds, opt => opt.MapFrom(
+                src => src.LimitDefinition != null && src.LimitDefinition.Thresholds != null
+                    ? src.LimitDefinition.Thresholds.Select(t => t.ThresholdValue)
+                    : new List<int>()
+            ))
+            .ReverseMap();
     }
 }

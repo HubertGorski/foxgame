@@ -71,6 +71,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("get")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userService.GetAllUsers();

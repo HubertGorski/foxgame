@@ -20,11 +20,5 @@ public class User
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 
     public virtual ICollection<UserLimit> UserLimits { get; set; } = [];
-    [NotMapped]
-    public IEnumerable<UserLimit> AchievementLimits => UserLimits.Where(l => l.Type == LimitType.Achievement);
-    [NotMapped]
-    public IEnumerable<UserLimit> PermissionLimits => UserLimits.Where(l => l.Type == LimitType.Permission);
-    [NotMapped]
-    public IEnumerable<UserLimit> AvailableFoxGames => UserLimits.Where(l => l.Type == LimitType.PermissionGame);
 
 }

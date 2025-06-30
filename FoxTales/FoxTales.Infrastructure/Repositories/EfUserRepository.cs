@@ -24,7 +24,11 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
 
     public async Task<ICollection<User>> GetAllUsers()
     {
-        return await _db.Users.ToListAsync();
+        return await _db.Users
+            .Include(u => u.UserLimits)
+            .ThenInclude(ul => ul.LimitDefinition)
+            .ThenInclude(ut => ut.Thresholds)
+            .ToListAsync();
     }
 
     public async Task<User?> GetUserById(int userId)

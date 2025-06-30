@@ -13,5 +13,4 @@ public class UserLimit
     public int CurrentValue { get; set; }
 
     public virtual LimitDefinition LimitDefinition { get; set; } = null!;
-
 }
