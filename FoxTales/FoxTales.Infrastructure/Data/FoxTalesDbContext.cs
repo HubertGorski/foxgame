@@ -12,6 +12,8 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<FoxGame> FoxGames { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UserLimit> UserLimits { get; set; }
+    public DbSet<LimitDefinition> LimitDefinitions { get; set; }
+    public DbSet<LimitThreshold> LimitThresholds { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,9 +35,27 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
 
         modelBuilder.Entity<UserLimit>(entity =>
         {
-            entity.HasKey(l => l.Id);
-            entity.Property(l => l.Type).IsRequired().HasMaxLength(32);
-            entity.Property(l => l.LimitName).IsRequired().HasMaxLength(128);
+            entity.HasKey(ul => new { ul.UserId, ul.Type, ul.LimitId });
+        
+            entity.HasOne(ul => ul.LimitDefinition)
+                .WithMany()
+                .HasForeignKey(ul => new { ul.Type, ul.LimitId })
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<LimitDefinition>(entity =>
+        {
+            entity.HasKey(ld => new { ld.Type, ld.LimitId });
+        });
+
+        modelBuilder.Entity<LimitThreshold>(entity =>
+        {
+            entity.HasKey(lt => lt.Id);
+
+            entity.HasOne(lt => lt.LimitDefinition)
+                .WithMany(ld => ld.Thresholds)
+                .HasForeignKey(lt => new { lt.Type, lt.LimitId })
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Role>(entity =>

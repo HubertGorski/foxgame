@@ -28,7 +28,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             UserId = user.UserId,
             User = user,
             Type = LimitType.PermissionGame,
-            LimitName = FoxGameName.Psych.GetStringValue(),
+            LimitId = (int)FoxGameName.Psych,
             CurrentValue = 1
         }];
 
