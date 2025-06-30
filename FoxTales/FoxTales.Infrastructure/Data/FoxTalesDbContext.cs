@@ -11,6 +11,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<Role> Roles { get; set; }
     public DbSet<FoxGame> FoxGames { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<UserLimit> UserLimits { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,17 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
             entity.Property(u => u.PasswordHash).IsRequired();
             entity.Property(u => u.RoleId).IsRequired().HasDefaultValue(1);
+            entity.HasMany(u => u.UserLimits)
+                .WithOne(l => l.User)
+                .HasForeignKey(l => l.UserId)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<UserLimit>(entity =>
+        {
+            entity.HasKey(l => l.Id);
+            entity.Property(l => l.Type).IsRequired().HasMaxLength(32);
+            entity.Property(l => l.LimitName).IsRequired().HasMaxLength(128);
         });
 
         modelBuilder.Entity<Role>(entity =>

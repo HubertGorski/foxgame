@@ -6,10 +6,10 @@ using System.Text.Json.Serialization;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FoxGameName
 {
-    [EnumMember(Value = "psych")]
+    [EnumMember(Value = "Psych")]
     Psych,
-    [EnumMember(Value = "dylematy")]
+    [EnumMember(Value = "Dylematy")]
     Dylematy,
-    [EnumMember(Value = "killgame")]
+    [EnumMember(Value = "Killgame")]
     KillGame
 }

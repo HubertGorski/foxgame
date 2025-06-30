@@ -5,6 +5,8 @@ using FoxTales.Application.Exceptions;
 using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
+using FoxTales.Domain.Extensions;
 using FoxTales.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -21,6 +23,15 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     {
         User user = _mapper.Map<User>(registerUserDto);
         user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
+        user.UserLimits = [new UserLimit()
+        {
+            UserId = user.UserId,
+            User = user,
+            Type = LimitType.PermissionGame,
+            LimitName = FoxGameName.Psych.GetStringValue(),
+            CurrentValue = 1
+        }];
+
         await _userRepository.AddAsync(user);
     }
 
