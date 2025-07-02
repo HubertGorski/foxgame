@@ -51,7 +51,22 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
                 {
                     Type = LimitType.PermissionGame,
                     LimitId = (int)FoxGameName.KillGame,
-                }
+                },
+                new()
+                {
+                    Type = LimitType.Avatar,
+                    LimitId = (int)AvatarName.Crazy,
+                },
+                new()
+                {
+                    Type = LimitType.Avatar,
+                    LimitId = (int)AvatarName.Default,
+                },
+                new()
+                {
+                    Type = LimitType.Avatar,
+                    LimitId = (int)AvatarName.Happy,
+                },
             };
 
         return limitDefinitions;

@@ -17,4 +17,5 @@ public interface IUserRepository
     Task<RefreshToken> GetRefreshTokenWithUser(string refreshToken);
     Task RevokeRefreshToken(RefreshToken tokenEntity);
     Task ClearTokens();
+    Task<ICollection<Avatar>> GetAllAvatars();
 }

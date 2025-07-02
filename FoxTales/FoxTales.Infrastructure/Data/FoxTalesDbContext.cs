@@ -14,6 +14,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<UserLimit> UserLimits { get; set; }
     public DbSet<LimitDefinition> LimitDefinitions { get; set; }
     public DbSet<LimitThreshold> LimitThresholds { get; set; }
+    public DbSet<Avatar> Avatars { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,6 +82,16 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.ToTable("FoxGames");
             entity.HasKey(u => u.FoxGameId);
             entity.Property(u => u.FoxGameId).ValueGeneratedNever();
+            entity.Property(u => u.Name).IsRequired().HasMaxLength(32).HasConversion<string>();
+        });
+
+        modelBuilder.Entity<Avatar>(entity =>
+        {
+            entity.ToTable("Avatars");
+            entity.HasKey(u => u.AvatarId);
+            entity.Property(u => u.AvatarId).ValueGeneratedNever();
+            entity.Property(u => u.IsPremium).IsRequired();
+            entity.Property(u => u.Source).IsRequired();
             entity.Property(u => u.Name).IsRequired().HasMaxLength(32).HasConversion<string>();
         });
 

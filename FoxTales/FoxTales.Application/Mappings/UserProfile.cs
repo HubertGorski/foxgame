@@ -15,6 +15,9 @@ public class UserProfile : Profile
         CreateMap<User, RegisterUserDto>()
             .ReverseMap();
 
+        CreateMap<Avatar, AvatarDto>()
+            .ReverseMap();
+
         CreateMap<UserLimit, UserLimitDto>()
             .ForMember(dest => dest.ClosestThreshold, opt => opt.Ignore())
             .ForMember(dest => dest.Thresholds, opt => opt.MapFrom(

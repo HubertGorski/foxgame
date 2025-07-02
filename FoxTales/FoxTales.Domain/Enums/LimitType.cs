@@ -13,5 +13,7 @@ public enum LimitType
     [EnumMember(Value = "PermissionGame")]
     PermissionGame,
     [EnumMember(Value = "UserExp")]
-    UserExp
+    UserExp,
+    [EnumMember(Value = "Avatar")]
+    Avatar
 }

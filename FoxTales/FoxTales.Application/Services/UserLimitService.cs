@@ -38,6 +38,12 @@ public class UserLimitService() : IUserLimitService
                 Type = LimitType.PermissionGame,
                 LimitId = (int)FoxGameName.Psych,
                 CurrentValue = 1
+            },
+            new UserLimit {
+                UserId = userId,
+                Type = LimitType.Avatar,
+                LimitId = (int)AvatarName.Default,
+                CurrentValue = 1
             }
         ];
     }

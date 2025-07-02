@@ -1,0 +1,53 @@
+using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
+using Microsoft.Extensions.Logging;
+
+namespace FoxTales.Infrastructure.Data.Seeders;
+
+public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> logger)
+{
+    private readonly FoxTalesDbContext _context = context;
+    private readonly ILogger<AvatarsSeeder> _logger = logger;
+
+    public async Task SeedAsync()
+    {
+        if (!_context.Avatars.Any())
+        {
+            _logger.LogInformation("Start avatars seeding");
+            IEnumerable<Avatar> avatars = GetAvatars();
+            await _context.Avatars.AddRangeAsync(avatars);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private static List<Avatar> GetAvatars()
+    {
+        var avatars = new List<Avatar>
+            {
+                new()
+                {
+                    AvatarId = (int)AvatarName.Default,
+                    Name = AvatarName.Default,
+                    Source = "/src/assets/imgs/defaultAvatars/1.png",
+                    IsPremium = false,
+                },
+                new()
+                {
+                    AvatarId = (int)AvatarName.Happy,
+                    Name = AvatarName.Happy,
+                    Source = "/src/assets/imgs/defaultAvatars/2.png",
+                    IsPremium = false,
+                },
+                new()
+                {
+                    AvatarId = (int)AvatarName.Crazy,
+                    Name = AvatarName.Crazy,
+                    Source = "/src/assets/imgs/defaultAvatars/3.png",
+                    IsPremium = true,
+                }
+            };
+
+        return avatars;
+    }
+}
+

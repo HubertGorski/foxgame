@@ -66,11 +66,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
         if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
-        UserDto userDto = _mapper.Map<UserDto>(user); 
+        UserDto userDto = _mapper.Map<UserDto>(user);
         TokensResponseDto tokens = await GetTokens(userDto);
         userDto.AccessToken = tokens.AccessToken;
         _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
-        
+
         return new()
         {
             User = userDto,
@@ -88,7 +88,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
         await _userRepository.RevokeRefreshToken(tokenEntity);
 
-        UserDto userDto = _mapper.Map<UserDto>(tokenEntity.User); 
+        UserDto userDto = _mapper.Map<UserDto>(tokenEntity.User);
         return await GetTokens(userDto);
     }
 
@@ -105,5 +105,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     public async Task ClearTokens()
     {
         await _userRepository.ClearTokens();
+    }
+
+    public async Task<ICollection<AvatarDto>> GetAllAvatars()
+    {
+        ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
+        return _mapper.Map<ICollection<AvatarDto>>(avatars);
     }
 }

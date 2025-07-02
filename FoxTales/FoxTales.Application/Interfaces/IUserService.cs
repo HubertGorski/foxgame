@@ -13,4 +13,5 @@ public interface IUserService
     Task<TokensResponseDto> GenerateNewTokens(string refreshToken);
     Task Logout(string refreshToken);
     Task ClearTokens();
+    Task<ICollection<AvatarDto>> GetAllAvatars();
 }

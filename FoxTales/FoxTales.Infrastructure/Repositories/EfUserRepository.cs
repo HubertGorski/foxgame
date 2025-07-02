@@ -31,6 +31,11 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .ToListAsync();
     }
 
+    public async Task<ICollection<Avatar>> GetAllAvatars()
+    {
+        return await _db.Avatars.ToListAsync();
+    }
+
     public async Task<User?> GetUserById(int userId)
     {
         return await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
