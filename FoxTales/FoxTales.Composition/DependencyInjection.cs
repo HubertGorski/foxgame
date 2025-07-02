@@ -27,6 +27,8 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserLimitService, UserLimitService>();
+        services.AddScoped<IFoxGameService, FoxGameService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
@@ -76,6 +78,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRepository, EfUserRepository>();
         services.AddScoped<IDylematyRepository, EfDylematyRepository>();
+        services.AddScoped<IFoxGameRepository, EfFoxGameRepository>();
 
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();

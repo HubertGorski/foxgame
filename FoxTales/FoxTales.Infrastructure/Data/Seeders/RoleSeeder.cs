@@ -1,4 +1,5 @@
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
@@ -25,15 +26,18 @@ public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger)
             {
                 new()
                 {
-                    Name = "User",
+                    RoleId = (int)RoleName.User,
+                    Name = RoleName.User,
                 },
                 new()
                 {
-                    Name = "Super User",
+                    RoleId = (int)RoleName.SuperUser,
+                    Name = RoleName.SuperUser,
                 },
                 new()
                 {
-                    Name = "Admin",
+                    RoleId = (int)RoleName.Admin,
+                    Name = RoleName.Admin,
                 }
             };
 

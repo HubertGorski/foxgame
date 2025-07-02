@@ -12,25 +12,20 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FoxTales.Application.Services;
 
-public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IJwtTokenGenerator tokenGenerator) : IUserService
+public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IJwtTokenGenerator tokenGenerator, IUserLimitService userLimitService) : IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;
+    private readonly IUserLimitService _userLimitService = userLimitService;
 
     public async Task RegisterAsync(RegisterUserDto registerUserDto)
     {
         User user = _mapper.Map<User>(registerUserDto);
         user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
-        user.UserLimits = [new UserLimit()
-        {
-            UserId = user.UserId,
-            User = user,
-            Type = LimitType.PermissionGame,
-            LimitId = (int)FoxGameName.Psych,
-            CurrentValue = 1
-        }];
+        user.UserLimits = _userLimitService.CreateDefaultLimitsForUser(user.UserId);
+        user.RoleId = (int)RoleName.User;
 
         await _userRepository.AddAsync(user);
     }

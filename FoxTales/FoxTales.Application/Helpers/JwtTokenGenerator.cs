@@ -44,7 +44,7 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
         ICollection<Claim> claims = [
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role.Name),
+            new Claim(ClaimTypes.Role, user.Role.Name.ToString()),
         ];
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));

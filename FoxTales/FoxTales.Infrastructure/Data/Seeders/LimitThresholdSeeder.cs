@@ -24,7 +24,7 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
             IEnumerable<LimitThreshold> limitThresholds = GetLimitThreshold();
             await _context.LimitThresholds.AddRangeAsync(limitThresholds);
         }
-        
+
         await _context.SaveChangesAsync();
     }
 
@@ -32,6 +32,11 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
     {
         var limitDefinitions = new List<LimitDefinition>
             {
+                new()
+                {
+                    Type = LimitType.UserExp,
+                    LimitId = (int)LimitType.UserExp,
+                },
                 new()
                 {
                     Type = LimitType.PermissionGame,
@@ -79,6 +84,12 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
                     Type = LimitType.PermissionGame,
                     LimitId = (int)FoxGameName.KillGame,
                     ThresholdValue = 1,
+                },
+                new()
+                {
+                    Type = LimitType.UserExp,
+                    LimitId = (int)LimitType.UserExp,
+                    ThresholdValue = 6,
                 }
             };
 

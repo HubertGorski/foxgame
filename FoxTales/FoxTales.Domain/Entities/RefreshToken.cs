@@ -8,6 +8,6 @@ public class RefreshToken
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsRevoked { get; set; } = false;
 
-    public int UserId { get; set; }
-    public virtual User User { get; set; }
+    public required int UserId { get; set; }
+    public virtual User User { get; set; } = null!;
 }

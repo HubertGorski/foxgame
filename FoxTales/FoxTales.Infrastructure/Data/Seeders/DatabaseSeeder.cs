@@ -11,7 +11,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
     private readonly RoleSeeder _roleSeeder = roleSeeder;
     private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
 
-    public async Task SeedAsync()
+    public async Task SeedAsync(bool clearDatabase = true, bool deleteDatabase = false)
     {
         if (!await _context.Database.CanConnectAsync())
         {
@@ -19,10 +19,34 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
             return;
         }
 
+
+        if (deleteDatabase)
+        {
+            await _context.Database.EnsureDeletedAsync();
+        }
+
+
+        if (clearDatabase)
+        {
+            _logger.LogInformation("Clearing database before seeding...");
+            await ClearDatabaseAsync();
+        }
+
         await _achievementSeeder.SeedAsync();
         await _roleSeeder.SeedAsync();
         await _foxGamesSeeder.SeedAsync();
         await _limitThresholdSeeder.SeedAsync();
         _logger.LogInformation("Database seeding completed successfully");
+    }
+
+    private async Task ClearDatabaseAsync()
+    {
+        _context.Achievements.RemoveRange(_context.Achievements);
+        _context.Roles.RemoveRange(_context.Roles);
+        _context.FoxGames.RemoveRange(_context.FoxGames);
+        _context.LimitThresholds.RemoveRange(_context.LimitThresholds);
+        _context.LimitDefinitions.RemoveRange(_context.LimitDefinitions);
+
+        await _context.SaveChangesAsync();
     }
 }
