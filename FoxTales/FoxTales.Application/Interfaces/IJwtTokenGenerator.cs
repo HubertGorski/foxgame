@@ -5,5 +5,5 @@ namespace FoxTales.Application.Interfaces;
 
 public interface IJwtTokenGenerator
 {
-    TokensResponseDto GetTokens(User user);
+    TokensResponseDto GetTokens(UserDto user);
 }

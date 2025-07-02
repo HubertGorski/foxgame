@@ -76,12 +76,6 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
                 new()
                 {
                     Type = LimitType.PermissionGame,
-                    LimitId = (int)FoxGameName.Dylematy,
-                    ThresholdValue = 2,
-                },
-                new()
-                {
-                    Type = LimitType.PermissionGame,
                     LimitId = (int)FoxGameName.KillGame,
                     ThresholdValue = 1,
                 },
@@ -90,6 +84,18 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
                     Type = LimitType.UserExp,
                     LimitId = (int)LimitType.UserExp,
                     ThresholdValue = 6,
+                },
+                new()
+                {
+                    Type = LimitType.UserExp,
+                    LimitId = (int)LimitType.UserExp,
+                    ThresholdValue = 14,
+                },
+                new()
+                {
+                    Type = LimitType.UserExp,
+                    LimitId = (int)LimitType.UserExp,
+                    ThresholdValue = 31,
                 }
             };
 

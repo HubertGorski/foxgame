@@ -14,5 +14,6 @@ public static class DictHelper
         public const string PasswordsAreNotIdentical = "passwordsAreNotIdentical";
         public const string InvalidEmailOrPassword = "invalidEmailOrPassword";
         public const string UnexpectedError = "unexpectedError";
+        public const string YouAreAlreadyAuthenticated = "youAreAlreadyAuthenticated";
     }
 }

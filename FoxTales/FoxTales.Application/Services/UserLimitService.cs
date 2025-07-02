@@ -1,3 +1,4 @@
+using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Enums;
@@ -5,7 +6,17 @@ using FoxTales.Domain.Enums;
 namespace FoxTales.Application.Services;
 
 public class UserLimitService() : IUserLimitService
-{ 
+{
+    public ICollection<UserLimitDto> ApplyClosestThresholds(ICollection<UserLimitDto> userLimits)
+    {
+        foreach (var limitDto in userLimits)
+        {
+            limitDto.ComputeClosestThreshold();
+        }
+
+        return userLimits;
+    }
+    
     public ICollection<UserLimit> CreateDefaultLimitsForUser(int userId)
     {
         return

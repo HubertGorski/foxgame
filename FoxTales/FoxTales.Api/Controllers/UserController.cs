@@ -32,8 +32,7 @@ public class UserController(IUserService userService) : ControllerBase
         Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
         return Ok(new
         {
-            response.UserId,
-            response.Username,
+            response.User,
             response.AccessToken,
         });
 

@@ -11,7 +11,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
     private readonly RoleSeeder _roleSeeder = roleSeeder;
     private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
 
-    public async Task SeedAsync(bool clearDatabase = true, bool deleteDatabase = false)
+    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false)
     {
         if (!await _context.Database.CanConnectAsync())
         {

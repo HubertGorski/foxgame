@@ -36,10 +36,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         ICollection<UserDto> usersDtos = _mapper.Map<ICollection<UserDto>>(users);
         foreach (var userDto in usersDtos)
         {
-            foreach (var limitDto in userDto.UserLimits)
-            {
-                limitDto.ComputeClosestThreshold();
-            }
+            _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
         }
 
         return usersDtos;
@@ -57,7 +54,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return _mapper.Map<ICollection<UserWithCardsDto>>(users);
     }
 
-    private async Task<TokensResponseDto> GetTokens(User user)
+    private async Task<TokensResponseDto> GetTokens(UserDto user)
     {
         TokensResponseDto tokens = _tokenGenerator.GetTokens(user);
         await _userRepository.StoreRefreshToken(tokens.RefreshToken);
@@ -69,11 +66,13 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
         if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
-        TokensResponseDto tokens = await GetTokens(user);
+        UserDto userDto = _mapper.Map<UserDto>(user); 
+        TokensResponseDto tokens = await GetTokens(userDto);
+        _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
+        
         return new()
         {
-            UserId = user.UserId,
-            Username = user.Username,
+            User = userDto,
             Options = tokens.Options,
             RefreshToken = tokens.RefreshToken,
             AccessToken = tokens.AccessToken
@@ -88,7 +87,9 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             throw new UnauthorizedException("Invalid or expired refresh token");
 
         await _userRepository.RevokeRefreshToken(tokenEntity);
-        return await GetTokens(tokenEntity.User);
+
+        UserDto userDto = _mapper.Map<UserDto>(tokenEntity.User); 
+        return await GetTokens(userDto);
     }
 
     public async Task Logout(string refreshToken)

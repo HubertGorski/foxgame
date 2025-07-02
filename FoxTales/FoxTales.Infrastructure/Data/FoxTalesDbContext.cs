@@ -63,7 +63,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.ToTable("Roles");
             entity.HasKey(u => u.RoleId);
             entity.Property(u => u.RoleId).ValueGeneratedNever();
-            entity.Property(u => u.Name).IsRequired();
+            entity.Property(u => u.Name).IsRequired().HasConversion<string>();
         });
 
         modelBuilder.Entity<Achievement>(entity =>

@@ -17,7 +17,7 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
     private readonly JwtSettings _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
 
 
-    public TokensResponseDto GetTokens(User user)
+    public TokensResponseDto GetTokens(UserDto user)
     {
         string accessToken = GenerateAccessToken(user);
         RefreshToken refreshToken = GenerateRefreshToken(user.UserId);
@@ -39,12 +39,12 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
     }
 
 
-    private string GenerateAccessToken(User user)
+    private string GenerateAccessToken(UserDto user)
     {
         ICollection<Claim> claims = [
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Role, user.Role.Name.ToString()),
+            new Claim(ClaimTypes.Role, user.Role.ToString()),
         ];
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));

@@ -1,3 +1,4 @@
+using FoxTales.Application.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,7 +21,7 @@ public class RejectIfAuthenticatedAttribute : ActionFilterAttribute
                 var jwtToken = handler.ReadJwtToken(token);
                 if (jwtToken.ValidTo > DateTime.UtcNow)
                 {
-                    context.Result = new BadRequestObjectResult("You are already authenticated.");
+                    context.Result = new BadRequestObjectResult(DictHelper.Validation.YouAreAlreadyAuthenticated);
                     return;
                 }
             }
