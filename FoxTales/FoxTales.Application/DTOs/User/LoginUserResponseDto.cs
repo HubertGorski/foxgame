@@ -8,5 +8,4 @@ public class LoginUserResponseDto
     public required UserDto User { get; set; }
     public required CookieOptions Options { get; set; }
     public required RefreshToken RefreshToken { get; set; }
-    public required string AccessToken { get; set; }
 }

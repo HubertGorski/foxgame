@@ -68,14 +68,14 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         UserDto userDto = _mapper.Map<UserDto>(user); 
         TokensResponseDto tokens = await GetTokens(userDto);
+        userDto.AccessToken = tokens.AccessToken;
         _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
         
         return new()
         {
             User = userDto,
             Options = tokens.Options,
-            RefreshToken = tokens.RefreshToken,
-            AccessToken = tokens.AccessToken
+            RefreshToken = tokens.RefreshToken
         };
     }
 

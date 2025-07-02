@@ -30,12 +30,7 @@ public class UserController(IUserService userService) : ControllerBase
     {
         LoginUserResponseDto response = await _userService.Login(loginUserDto);
         Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
-        return Ok(new
-        {
-            response.User,
-            response.AccessToken,
-        });
-
+        return Ok(response.User);
     }
 
     [HttpPost("logout")]
