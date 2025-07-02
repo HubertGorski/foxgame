@@ -80,7 +80,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         {
             entity.ToTable("FoxGames");
             entity.HasKey(u => u.FoxGameId);
-            entity.Property(u => u.FoxGameId).ValueGeneratedOnAdd();
+            entity.Property(u => u.FoxGameId).ValueGeneratedNever();
             entity.Property(u => u.Name).IsRequired().HasMaxLength(32).HasConversion<string>();
         });
 

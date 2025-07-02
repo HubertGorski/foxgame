@@ -7,9 +7,9 @@ using System.Text.Json.Serialization;
 public enum FoxGameName
 {
     [EnumMember(Value = "Psych")]
-    Psych,
+    Psych = 1,
     [EnumMember(Value = "Dylematy")]
-    Dylematy,
+    Dylematy = 2,
     [EnumMember(Value = "Killgame")]
-    KillGame
+    KillGame = 3
 }

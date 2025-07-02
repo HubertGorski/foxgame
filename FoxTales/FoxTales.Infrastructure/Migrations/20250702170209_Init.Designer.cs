@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    [Migration("20250630170331_AddLimits")]
-    partial class AddLimits
+    [Migration("20250702170209_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -86,10 +86,7 @@ namespace FoxTales.Infrastructure.Migrations
             modelBuilder.Entity("FoxTales.Domain.Entities.FoxGame", b =>
                 {
                     b.Property<int>("FoxGameId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FoxGameId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -102,6 +99,43 @@ namespace FoxTales.Infrastructure.Migrations
                     b.HasKey("FoxGameId");
 
                     b.ToTable("FoxGames", (string)null);
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.LimitDefinition", b =>
+                {
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LimitId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Type", "LimitId");
+
+                    b.ToTable("LimitDefinitions");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.LimitThreshold", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LimitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ThresholdValue")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Type", "LimitId");
+
+                    b.ToTable("LimitThresholds");
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.RefreshToken", b =>
@@ -188,28 +222,21 @@ namespace FoxTales.Infrastructure.Migrations
 
             modelBuilder.Entity("FoxTales.Domain.Entities.UserLimit", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LimitId")
+                        .HasColumnType("int");
 
                     b.Property<int>("CurrentValue")
                         .HasColumnType("int");
 
-                    b.Property<string>("LimitName")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                    b.HasKey("UserId", "Type", "LimitId");
 
-                    b.Property<int>("Type")
-                        .HasMaxLength(32)
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("Type", "LimitId");
 
                     b.ToTable("UserLimits");
                 });
@@ -223,6 +250,17 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.LimitThreshold", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.LimitDefinition", "LimitDefinition")
+                        .WithMany("Thresholds")
+                        .HasForeignKey("Type", "LimitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LimitDefinition");
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.RefreshToken", b =>
@@ -255,7 +293,20 @@ namespace FoxTales.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("FoxTales.Domain.Entities.LimitDefinition", "LimitDefinition")
+                        .WithMany()
+                        .HasForeignKey("Type", "LimitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LimitDefinition");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.LimitDefinition", b =>
+                {
+                    b.Navigation("Thresholds");
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>

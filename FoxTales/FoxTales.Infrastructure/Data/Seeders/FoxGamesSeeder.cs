@@ -26,14 +26,17 @@ public class FoxGamesSeeder(FoxTalesDbContext context, ILogger<FoxGamesSeeder> l
             {
                 new()
                 {
+                    FoxGameId = (int)FoxGameName.Psych,
                     Name = FoxGameName.Psych,
                 },
                 new()
                 {
+                    FoxGameId = (int)FoxGameName.Dylematy,
                     Name = FoxGameName.Dylematy,
                 },
                 new()
                 {
+                    FoxGameId = (int)FoxGameName.KillGame,
                     Name = FoxGameName.KillGame,
                 }
             };

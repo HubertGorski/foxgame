@@ -83,10 +83,7 @@ namespace FoxTales.Infrastructure.Migrations
             modelBuilder.Entity("FoxTales.Domain.Entities.FoxGame", b =>
                 {
                     b.Property<int>("FoxGameId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FoxGameId"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");

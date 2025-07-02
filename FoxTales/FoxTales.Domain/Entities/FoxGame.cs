@@ -8,7 +8,6 @@ public class FoxGame
 {
 
     [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int FoxGameId { get; set; }
     public required FoxGameName Name { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
