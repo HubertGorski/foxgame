@@ -127,6 +127,10 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(q => q.Language).IsRequired();
             entity.Property(q => q.CreatedDate).IsRequired();
             entity.Property(q => q.IsPublic).IsRequired();
+            entity.HasOne(q => q.Owner)
+                  .WithMany(u => u.Questions)
+                  .HasForeignKey(q => q.OwnerId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

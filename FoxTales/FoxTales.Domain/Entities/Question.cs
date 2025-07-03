@@ -11,4 +11,5 @@ public class Question
     public DateTime CreatedDate { get; set; }
 
     public int OwnerId { get; set; }
+    public virtual User Owner { get; set; } = null!;
 }
