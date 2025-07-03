@@ -14,4 +14,6 @@ public interface IUserService
     Task Logout(string refreshToken);
     Task ClearTokens();
     Task<ICollection<AvatarDto>> GetAllAvatars();
+    Task<bool> SetUsername(string username, int userId);
+    Task<bool> SetAvatar(int avatarId, int userId);
 }

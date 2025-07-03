@@ -15,5 +15,6 @@ public static class DictHelper
         public const string InvalidEmailOrPassword = "invalidEmailOrPassword";
         public const string UnexpectedError = "unexpectedError";
         public const string YouAreAlreadyAuthenticated = "youAreAlreadyAuthenticated";
+        public const string TokenDoesNotContainUserId = "tokenDoesNotContainUserId";
     }
 }

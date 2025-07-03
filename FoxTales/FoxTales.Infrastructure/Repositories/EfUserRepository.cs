@@ -96,4 +96,27 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
     }
 
+    public async Task<bool> SetUsername(string username, int userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        user.Username = username;
+        await _db.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> SetAvatar(int avatarId, int userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        user.AvatarId = avatarId;
+        await _db.SaveChangesAsync();
+
+        return true;
+    }
+
+
 }

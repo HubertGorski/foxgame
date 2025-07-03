@@ -122,4 +122,14 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
         return _mapper.Map<ICollection<AvatarDto>>(avatars);
     }
+
+    public async Task<bool> SetUsername(string username, int userId)
+    {
+        return await _userRepository.SetUsername(username, userId);
+    }
+
+    public async Task<bool> SetAvatar(int avatarId, int userId)
+    {
+        return await _userRepository.SetAvatar(avatarId, userId);
+    }
 }

@@ -1,9 +1,9 @@
 using FoxTales.Api.Filters;
+using FoxTales.Api.Helpers;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
 
 namespace FoxTales.Api.Controllers;
 
@@ -86,10 +86,25 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpGet("getAvatars")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetAllAvatars()
     {
         var avatars = await _userService.GetAllAvatars();
         return Ok(avatars);
+    }
+
+    [HttpPost("setUsername")]
+    public async Task<IActionResult> SetUsername([FromBody] SetUsernameRequestDto request)
+    {
+        int userId = User.GetUserId();
+        bool response = await _userService.SetUsername(request.Username, userId);
+        return Ok(response);
+    }
+
+    [HttpPost("setAvatar")]
+    public async Task<IActionResult> SetAvatar([FromBody] SetAvatarRequestDto request)
+    {
+        int userId = User.GetUserId();
+        bool response = await _userService.SetAvatar(request.AvatarId, userId);
+        return Ok(response);
     }
 }

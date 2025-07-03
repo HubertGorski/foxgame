@@ -18,4 +18,6 @@ public interface IUserRepository
     Task RevokeRefreshToken(RefreshToken tokenEntity);
     Task ClearTokens();
     Task<ICollection<Avatar>> GetAllAvatars();
+    Task<bool> SetUsername(string username, int userId);
+    Task<bool> SetAvatar(int avatarId, int userId);
 }
