@@ -17,4 +17,5 @@ public interface IUserService
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
     Task<int> AddQuestion(QuestionDto request);
+    Task<bool> RemoveQuestion(int questionId);
 }

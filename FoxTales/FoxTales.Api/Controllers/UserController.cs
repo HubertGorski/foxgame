@@ -117,4 +117,11 @@ public class UserController(IUserService userService) : ControllerBase
         int response = await _userService.AddQuestion(request.Question);
         return Ok(response);
     }
+
+    [HttpPost("removeQuestion")]
+    public async Task<IActionResult> RemoveQuestion([FromBody] RemoveQuestionRequestDto request)
+    {
+        bool response = await _userService.RemoveQuestion(request.QuestionId);
+        return Ok(response);
+    }
 }

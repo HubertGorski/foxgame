@@ -137,4 +137,9 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         Question question = _mapper.Map<Question>(request);
         return await _userRepository.AddQuestion(question);
     }
+
+    public async Task<bool> RemoveQuestion(int questionId)
+    {
+        return await _userRepository.RemoveQuestion(questionId);
+    }
 }
