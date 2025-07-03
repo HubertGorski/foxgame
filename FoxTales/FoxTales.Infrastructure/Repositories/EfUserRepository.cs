@@ -44,6 +44,7 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     public async Task<User?> GetUserByEmail(string email)
     {
         return await _db.Users
+            .Include(u => u.Avatar)
             .Include(u => u.Role)
             .Include(u => u.UserLimits)
             .ThenInclude(ul => ul.LimitDefinition)

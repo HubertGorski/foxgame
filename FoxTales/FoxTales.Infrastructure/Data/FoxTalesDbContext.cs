@@ -28,6 +28,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
             entity.Property(u => u.PasswordHash).IsRequired();
             entity.Property(u => u.RoleId).IsRequired().HasDefaultValue(1);
+            entity.Property(u => u.AvatarId).IsRequired().HasDefaultValue(1);
             entity.HasMany(u => u.UserLimits)
                 .WithOne(l => l.User)
                 .HasForeignKey(l => l.UserId)

@@ -44,6 +44,20 @@ public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> log
                     Name = AvatarName.Crazy,
                     Source = "/src/assets/imgs/defaultAvatars/3.png",
                     IsPremium = true,
+                },
+                new()
+                {
+                    AvatarId = (int)AvatarName.Sad,
+                    Name = AvatarName.Sad,
+                    Source = "/src/assets/imgs/defaultAvatars/3.png",
+                    IsPremium = true,
+                },
+                new()
+                {
+                    AvatarId = (int)AvatarName.New,
+                    Name = AvatarName.New,
+                    Source = "/src/assets/imgs/defaultAvatars/3.png",
+                    IsPremium = true,
                 }
             };
 

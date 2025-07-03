@@ -51,6 +51,12 @@ public class UserLimitService(IFoxGameRepository foxGameRepository, IMapper mapp
                 Type = LimitType.Avatar,
                 LimitId = (int)AvatarName.Default,
                 CurrentValue = 1
+            },
+            new UserLimit {
+                UserId = userId,
+                Type = LimitType.Avatar,
+                LimitId = (int)AvatarName.New,
+                CurrentValue = 1
             }
         ];
     }

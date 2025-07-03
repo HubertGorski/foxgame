@@ -11,5 +11,9 @@ public enum AvatarName
     [EnumMember(Value = "Crazy")]
     Crazy = 2,
     [EnumMember(Value = "Happy")]
-    Happy = 3
+    Happy = 3,
+    [EnumMember(Value = "New")]
+    New = 4,
+    [EnumMember(Value = "Sad")]
+    Sad = 5
 }

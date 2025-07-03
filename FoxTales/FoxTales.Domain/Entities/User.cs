@@ -12,6 +12,8 @@ public class User
     public required string Username { get; set; }
     public required string Email { get; set; }
     public required string PasswordHash { get; set; }
+    public required int AvatarId { get; set; }
+    public virtual Avatar Avatar { get; set; } = null!;
 
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
