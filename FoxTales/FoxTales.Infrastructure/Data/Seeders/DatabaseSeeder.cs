@@ -12,7 +12,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
     private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
     private readonly AvatarsSeeder _avatarSeeder = avatarSeeder;
 
-    public async Task SeedAsync(bool clearDatabase = true, bool deleteDatabase = false)
+    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false)
     {
         if (!await _context.Database.CanConnectAsync())
         {

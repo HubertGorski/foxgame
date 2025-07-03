@@ -1,3 +1,4 @@
+using FoxTales.Application.DTOs.FoxGame;
 using FoxTales.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 
@@ -8,4 +9,6 @@ public class LoginUserResponseDto
     public required UserDto User { get; set; }
     public required CookieOptions Options { get; set; }
     public required RefreshToken RefreshToken { get; set; }
+    public required ICollection<FoxGameDto> FoxGames { get; set; }
+    public required ICollection<AvatarDto> Avatars { get; set; }
 }

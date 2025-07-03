@@ -1,4 +1,5 @@
 using AutoMapper;
+using FoxTales.Application.DTOs.FoxGame;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
 using FoxTales.Application.Exceptions;
@@ -66,14 +67,23 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
         if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
+
         UserDto userDto = _mapper.Map<UserDto>(user);
+        _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
+
         TokensResponseDto tokens = await GetTokens(userDto);
         userDto.AccessToken = tokens.AccessToken;
-        _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
+
+        ICollection<FoxGameDto> foxGamesDto = await _userLimitService.GetAllFoxGames();
+
+        ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
+        ICollection<AvatarDto> avatarsDto = _mapper.Map<ICollection<AvatarDto>>(avatars);
 
         return new()
         {
             User = userDto,
+            Avatars = avatarsDto,
+            FoxGames = foxGamesDto,
             Options = tokens.Options,
             RefreshToken = tokens.RefreshToken
         };

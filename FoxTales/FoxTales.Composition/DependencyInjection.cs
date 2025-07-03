@@ -28,7 +28,6 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserLimitService, UserLimitService>();
-        services.AddScoped<IFoxGameService, FoxGameService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
