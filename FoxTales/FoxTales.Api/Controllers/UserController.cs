@@ -107,4 +107,14 @@ public class UserController(IUserService userService) : ControllerBase
         bool response = await _userService.SetAvatar(request.AvatarId, userId);
         return Ok(response);
     }
+
+    [HttpPost("addQuestion")]
+    public async Task<IActionResult> AddQuestion([FromBody] AddQuestionRequestDto request)
+    {
+        if (!User.IsOwner())
+            return Unauthorized();
+
+        int response = await _userService.AddQuestion(request.Question);
+        return Ok(response);
+    }
 }

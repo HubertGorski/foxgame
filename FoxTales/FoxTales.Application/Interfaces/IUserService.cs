@@ -16,4 +16,5 @@ public interface IUserService
     Task<ICollection<AvatarDto>> GetAllAvatars();
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
+    Task<int> AddQuestion(QuestionDto request);
 }

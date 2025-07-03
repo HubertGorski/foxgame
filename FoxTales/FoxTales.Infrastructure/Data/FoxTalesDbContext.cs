@@ -15,6 +15,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<LimitDefinition> LimitDefinitions { get; set; }
     public DbSet<LimitThreshold> LimitThresholds { get; set; }
     public DbSet<Avatar> Avatars { get; set; }
+    public DbSet<Question> Questions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,7 +39,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
         modelBuilder.Entity<UserLimit>(entity =>
         {
             entity.HasKey(ul => new { ul.UserId, ul.Type, ul.LimitId });
-        
+
             entity.HasOne(ul => ul.LimitDefinition)
                 .WithMany()
                 .HasForeignKey(ul => new { ul.Type, ul.LimitId })
@@ -117,6 +118,15 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                 .WithMany(u => u.Cards)
                 .HasForeignKey(c => c.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.HasKey(q => q.Id);
+            entity.Property(q => q.Text).IsRequired();
+            entity.Property(q => q.Language).IsRequired();
+            entity.Property(q => q.CreatedDate).IsRequired();
+            entity.Property(q => q.IsPublic).IsRequired();
         });
     }
 }

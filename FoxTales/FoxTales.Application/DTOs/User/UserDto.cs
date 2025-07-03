@@ -12,4 +12,6 @@ public class UserDto
     public string AccessToken { get; set; } = "";
 
     public ICollection<UserLimitDto> UserLimits { get; set; } = [];
+
+    public ICollection<QuestionDto> Questions { get; set; } = [];
 }

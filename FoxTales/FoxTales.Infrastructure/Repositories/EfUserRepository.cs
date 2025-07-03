@@ -118,5 +118,10 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return true;
     }
 
+    public async Task<int> AddQuestion(Question question)
+    {
+        _db.Questions.Add(question);
+        return await _db.SaveChangesAsync();
+    }
 
 }

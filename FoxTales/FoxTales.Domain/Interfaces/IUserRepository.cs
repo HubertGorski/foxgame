@@ -20,4 +20,5 @@ public interface IUserRepository
     Task<ICollection<Avatar>> GetAllAvatars();
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
+    Task<int> AddQuestion(Question question);
 }

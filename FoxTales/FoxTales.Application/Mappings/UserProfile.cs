@@ -18,8 +18,11 @@ public class UserProfile : Profile
 
         CreateMap<Avatar, AvatarDto>()
             .ReverseMap();
-            
+
         CreateMap<FoxGame, FoxGameDto>()
+            .ReverseMap();
+
+        CreateMap<Question, QuestionDto>()
             .ReverseMap();
 
         CreateMap<UserLimit, UserLimitDto>()

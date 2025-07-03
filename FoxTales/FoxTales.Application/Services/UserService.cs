@@ -7,7 +7,6 @@ using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Enums;
-using FoxTales.Domain.Extensions;
 using FoxTales.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -131,5 +130,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     public async Task<bool> SetAvatar(int avatarId, int userId)
     {
         return await _userRepository.SetAvatar(avatarId, userId);
+    }
+
+    public async Task<int> AddQuestion(QuestionDto request)
+    {
+        Question question = _mapper.Map<Question>(request);
+        return await _userRepository.AddQuestion(question);
     }
 }

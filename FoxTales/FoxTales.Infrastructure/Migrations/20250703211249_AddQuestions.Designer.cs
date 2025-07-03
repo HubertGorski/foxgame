@@ -4,6 +4,7 @@ using FoxTales.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    partial class FoxTalesDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250703211249_AddQuestions")]
+    partial class AddQuestions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -181,12 +184,9 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Questions");
                 });
@@ -322,9 +322,13 @@ namespace FoxTales.Infrastructure.Migrations
 
             modelBuilder.Entity("FoxTales.Domain.Entities.Question", b =>
                 {
-                    b.HasOne("FoxTales.Domain.Entities.User", null)
+                    b.HasOne("FoxTales.Domain.Entities.User", "Owner")
                         .WithMany("Questions")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.RefreshToken", b =>
