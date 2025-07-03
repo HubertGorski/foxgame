@@ -121,7 +121,8 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     public async Task<int> AddQuestion(Question question)
     {
         _db.Questions.Add(question);
-        return await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();
+        return question.Id ?? 0;
     }
 
 }
