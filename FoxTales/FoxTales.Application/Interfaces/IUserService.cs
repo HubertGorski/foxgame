@@ -1,3 +1,4 @@
+using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
 
@@ -18,4 +19,6 @@ public interface IUserService
     Task<bool> SetAvatar(int avatarId, int userId);
     Task<int> AddQuestion(QuestionDto request);
     Task<bool> RemoveQuestion(int questionId);
+    Task<int> AddCatalog(CatalogDto request);
+    Task<bool> EditCatalog(CatalogDto request);
 }

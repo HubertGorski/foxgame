@@ -24,5 +24,6 @@ public class User
     public virtual ICollection<UserLimit> UserLimits { get; set; } = [];
 
     public ICollection<Question> Questions { get; set; } = [];
+    public ICollection<Catalog> Catalogs { get; set; } = [];
 
 }

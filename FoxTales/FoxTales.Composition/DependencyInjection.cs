@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
         services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+        services.AddScoped<IValidator<LoginUserDto>, LoginUserDtoValidator>();
+        services.AddScoped<IValidator<SetUsernameRequestDto>, SetUsernameRequestDtoValidator>();
         services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<DylematyCardProfile>();

@@ -22,4 +22,6 @@ public interface IUserRepository
     Task<bool> SetAvatar(int avatarId, int userId);
     Task<int> AddQuestion(Question question);
     Task<bool> RemoveQuestion(int questionId);
+    Task<int> AddCatalog(Catalog catalog);
+    Task<bool> EditCatalog(Catalog catalog);
 }

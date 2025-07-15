@@ -136,5 +136,18 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
         return true;
     }
+    public async Task<int> AddCatalog(Catalog catalog)
+    {
+        _db.Catalogs.Add(catalog);
+        await _db.SaveChangesAsync();
+        return catalog.CatalogId ?? 0;
+    }
+
+    public async Task<bool> EditCatalog(Catalog catalog)
+    {
+        _db.Catalogs.Update(catalog);
+        await _db.SaveChangesAsync();
+        return true;
+    }
 
 }

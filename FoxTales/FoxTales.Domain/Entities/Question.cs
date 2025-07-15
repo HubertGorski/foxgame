@@ -12,4 +12,6 @@ public class Question
 
     public int OwnerId { get; set; }
     public virtual User Owner { get; set; } = null!;
+
+    public ICollection<Catalog> Catalogs { get; set; } = [];
 }

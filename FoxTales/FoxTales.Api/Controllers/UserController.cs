@@ -1,5 +1,6 @@
 using FoxTales.Api.Filters;
 using FoxTales.Api.Helpers;
+using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -122,6 +123,22 @@ public class UserController(IUserService userService) : ControllerBase
     public async Task<IActionResult> RemoveQuestion([FromBody] RemoveQuestionRequestDto request)
     {
         bool response = await _userService.RemoveQuestion(request.QuestionId);
+        return Ok(response);
+    }
+
+    [HttpPost("addCatalog")]
+    public async Task<IActionResult> AddCatalog([FromBody] AddCatalogRequestDto request)
+    {
+        request.Catalog.OwnerId = User.GetUserId();
+        int response = await _userService.AddCatalog(request.Catalog);
+        return Ok(response);
+    }
+
+    [HttpPost("editCatalog")]
+    public async Task<IActionResult> EditCatalog([FromBody] EditCatalogRequestDto request)
+    {
+        request.Catalog.OwnerId = User.GetUserId();
+        bool response = await _userService.EditCatalog(request.Catalog);
         return Ok(response);
     }
 }

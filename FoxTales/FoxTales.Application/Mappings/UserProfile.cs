@@ -1,4 +1,5 @@
 using AutoMapper;
+using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.FoxGame;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Domain.Entities;
@@ -23,6 +24,9 @@ public class UserProfile : Profile
             .ReverseMap();
 
         CreateMap<Question, QuestionDto>()
+            .ReverseMap();
+
+        CreateMap<Catalog, CatalogDto>()
             .ReverseMap();
 
         CreateMap<UserLimit, UserLimitDto>()

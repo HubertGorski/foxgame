@@ -1,4 +1,5 @@
 using AutoMapper;
+using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.FoxGame;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.DTOs.UserCard;
@@ -135,11 +136,28 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     public async Task<int> AddQuestion(QuestionDto request)
     {
         Question question = _mapper.Map<Question>(request);
+        question.CreatedDate = DateTime.UtcNow;
         return await _userRepository.AddQuestion(question);
     }
 
     public async Task<bool> RemoveQuestion(int questionId)
     {
         return await _userRepository.RemoveQuestion(questionId);
+    }
+
+    public async Task<int> AddCatalog(CatalogDto request)
+    {
+        Catalog catalog = _mapper.Map<Catalog>(request);
+        catalog.CreatedDate = DateTime.UtcNow;
+        return await _userRepository.AddCatalog(catalog);
+    }
+
+    public async Task<bool> EditCatalog(CatalogDto request)
+    {
+        if (request.CatalogId == null || request.CatalogId == 0)
+            throw new NotFoundException("Catalog doesn't exist!");
+        
+        Catalog catalog = _mapper.Map<Catalog>(request);
+        return await _userRepository.EditCatalog(catalog);
     }
 }

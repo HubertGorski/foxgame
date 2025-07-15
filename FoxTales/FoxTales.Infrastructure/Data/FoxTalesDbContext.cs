@@ -16,6 +16,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<LimitThreshold> LimitThresholds { get; set; }
     public DbSet<Avatar> Avatars { get; set; }
     public DbSet<Question> Questions { get; set; }
+    public DbSet<Catalog> Catalogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,14 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                 .WithOne(l => l.User)
                 .HasForeignKey(l => l.UserId)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<Catalog>(entity =>
+        {
+            entity.HasOne(c => c.Owner)
+                .WithMany(u => u.Catalogs)
+                .HasForeignKey(c => c.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<UserLimit>(entity =>
@@ -128,9 +137,27 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.Property(q => q.CreatedDate).IsRequired();
             entity.Property(q => q.IsPublic).IsRequired();
             entity.HasOne(q => q.Owner)
-                  .WithMany(u => u.Questions)
-                  .HasForeignKey(q => q.OwnerId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(u => u.Questions)
+                .HasForeignKey(q => q.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(q => q.Catalogs)
+                .WithMany(c => c.Questions)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CatalogQuestions",
+                    j => j.HasOne<Catalog>()
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne<Question>()
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey("CatalogId", "QuestionId");
+                        j.ToTable("CatalogQuestions");
+                    });
+
         });
     }
 }

@@ -8,6 +8,5 @@ public class QuestionDto
     public required string Text { get; set; }
     public bool IsPublic { get; set; }
     public required Language Language { get; set; }
-
     public int OwnerId { get; set; }
 }
