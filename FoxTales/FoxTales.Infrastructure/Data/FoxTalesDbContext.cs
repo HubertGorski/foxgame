@@ -17,6 +17,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
     public DbSet<Avatar> Avatars { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Catalog> Catalogs { get; set; }
+    public DbSet<CatalogType> CatalogTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,6 +44,15 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                 .WithMany(u => u.Catalogs)
                 .HasForeignKey(c => c.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CatalogType>(entity =>
+        {
+            entity.ToTable("CatalogTypes");
+            entity.HasKey(u => u.CatalogTypeId);
+            entity.Property(u => u.CatalogTypeId).ValueGeneratedOnAdd();
+            entity.Property(u => u.Name).IsRequired().HasMaxLength(32);
+            entity.Property(u => u.Size).IsRequired();
         });
 
         modelBuilder.Entity<UserLimit>(entity =>

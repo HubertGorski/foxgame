@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder, LimitThresholdSeeder limitThresholdSeeder, AvatarsSeeder avatarSeeder)
+public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, CatalogTypesSeeder catalogTypesSeeder, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder, LimitThresholdSeeder limitThresholdSeeder, AvatarsSeeder avatarSeeder)
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<DatabaseSeeder> _logger = logger;
@@ -11,6 +11,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
     private readonly RoleSeeder _roleSeeder = roleSeeder;
     private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
     private readonly AvatarsSeeder _avatarSeeder = avatarSeeder;
+    private readonly CatalogTypesSeeder _catalogTypesSeeder = catalogTypesSeeder;
 
     public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false)
     {
@@ -38,6 +39,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
         await _foxGamesSeeder.SeedAsync();
         await _limitThresholdSeeder.SeedAsync();
         await _avatarSeeder.SeedAsync();
+        await _catalogTypesSeeder.SeedAsync();
 
         _logger.LogInformation("Database seeding completed successfully");
     }
@@ -50,6 +52,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
         _context.LimitThresholds.RemoveRange(_context.LimitThresholds);
         _context.LimitDefinitions.RemoveRange(_context.LimitDefinitions);
         _context.Avatars.RemoveRange(_context.Avatars);
+        _context.CatalogTypes.RemoveRange(_context.CatalogTypes);
 
         await _context.SaveChangesAsync();
     }

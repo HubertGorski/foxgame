@@ -84,6 +84,7 @@ public static class DependencyInjection
         services.AddScoped<DatabaseSeeder>();
         services.AddTransient<AchievementSeeder>();
         services.AddTransient<RoleSeeder>();
+        services.AddTransient<CatalogTypesSeeder>();
         services.AddTransient<FoxGamesSeeder>();
         services.AddTransient<LimitThresholdSeeder>();
         services.AddTransient<AvatarsSeeder>();

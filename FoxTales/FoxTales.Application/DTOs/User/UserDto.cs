@@ -1,3 +1,4 @@
+using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Domain.Enums;
 
 namespace FoxTales.Application.DTOs.User;
@@ -14,4 +15,5 @@ public class UserDto
     public ICollection<UserLimitDto> UserLimits { get; set; } = [];
 
     public ICollection<QuestionDto> Questions { get; set; } = [];
+    public ICollection<CatalogDto> Catalogs { get; set; } = [];
 }

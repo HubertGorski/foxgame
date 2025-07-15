@@ -47,6 +47,7 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .Include(u => u.Avatar)
             .Include(u => u.Role)
             .Include(u => u.Questions)
+            .Include(u => u.Catalogs)
             .Include(u => u.UserLimits)
             .ThenInclude(ul => ul.LimitDefinition)
             .ThenInclude(ut => ut.Thresholds)
