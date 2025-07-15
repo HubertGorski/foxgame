@@ -79,10 +79,14 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
         ICollection<AvatarDto> avatarsDto = _mapper.Map<ICollection<AvatarDto>>(avatars);
 
+        ICollection<CatalogType> availableCatalogTypes = await _userRepository.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
+        ICollection<CatalogTypeDto> availableCatalogTypesDto = _mapper.Map<ICollection<CatalogTypeDto>>(availableCatalogTypes);
+
         return new()
         {
             User = userDto,
             Avatars = avatarsDto,
+            AvailableCatalogTypes = availableCatalogTypesDto,
             FoxGames = foxGamesDto,
             Options = tokens.Options,
             RefreshToken = tokens.RefreshToken

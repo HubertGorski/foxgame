@@ -44,16 +44,38 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                 .WithMany(u => u.Catalogs)
                 .HasForeignKey(c => c.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(c => c.CatalogType)
+                .WithMany()
+                .HasForeignKey(c => c.CatalogTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<CatalogType>(entity =>
         {
             entity.ToTable("CatalogTypes");
             entity.HasKey(u => u.CatalogTypeId);
-            entity.Property(u => u.CatalogTypeId).ValueGeneratedOnAdd();
-            entity.Property(u => u.Name).IsRequired().HasMaxLength(32);
+            entity.Property(u => u.CatalogTypeId).ValueGeneratedNever();
+            entity.Property(u => u.Name).IsRequired().HasConversion<string>();
             entity.Property(u => u.Size).IsRequired();
+            entity.HasMany(q => q.Catalogs)
+                .WithMany(c => c.AvailableTypes)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CatalogTypeDefinitions",
+                    j => j.HasOne<Catalog>()
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne<CatalogType>()
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey("CatalogId", "CatalogTypeId");
+                        j.ToTable("CatalogTypeDefinitions");
+                    });
         });
+
 
         modelBuilder.Entity<UserLimit>(entity =>
         {

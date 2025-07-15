@@ -29,6 +29,9 @@ public class UserProfile : Profile
         CreateMap<Catalog, CatalogDto>()
             .ReverseMap();
 
+        CreateMap<CatalogType, CatalogTypeDto>()
+            .ReverseMap();
+
         CreateMap<UserLimit, UserLimitDto>()
             .ForMember(dest => dest.ClosestThreshold, opt => opt.Ignore())
             .ForMember(dest => dest.Thresholds, opt => opt.MapFrom(

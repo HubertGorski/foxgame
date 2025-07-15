@@ -37,6 +37,21 @@ namespace FoxTales.Infrastructure.Migrations
                     b.ToTable("CatalogQuestions", (string)null);
                 });
 
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.Property<int>("CatalogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CatalogId", "CatalogTypeId");
+
+                    b.HasIndex("CatalogTypeId");
+
+                    b.ToTable("CatalogTypeDefinitions", (string)null);
+                });
+
             modelBuilder.Entity("FoxTales.Domain.Entities.Achievement", b =>
                 {
                     b.Property<int>("AchievementId")
@@ -98,6 +113,9 @@ namespace FoxTales.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CatalogId"));
 
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -113,6 +131,8 @@ namespace FoxTales.Infrastructure.Migrations
 
                     b.HasKey("CatalogId");
 
+                    b.HasIndex("CatalogTypeId");
+
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Catalogs");
@@ -121,15 +141,11 @@ namespace FoxTales.Infrastructure.Migrations
             modelBuilder.Entity("FoxTales.Domain.Entities.CatalogType", b =>
                 {
                     b.Property<int>("CatalogTypeId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CatalogTypeId"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Size")
                         .HasColumnType("int");
@@ -374,13 +390,36 @@ namespace FoxTales.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FoxTales.Domain.Entities.CatalogType", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("FoxTales.Domain.Entities.Catalog", b =>
                 {
+                    b.HasOne("FoxTales.Domain.Entities.CatalogType", "CatalogType")
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("FoxTales.Domain.Entities.User", "Owner")
                         .WithMany("Catalogs")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("CatalogType");
 
                     b.Navigation("Owner");
                 });

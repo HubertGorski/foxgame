@@ -1,4 +1,5 @@
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
@@ -25,22 +26,26 @@ public class CatalogTypesSeeder(FoxTalesDbContext context, ILogger<CatalogTypesS
             {
                 new()
                 {
-                    Name = "Small",
+                    CatalogTypeId = (int)CatalogTypeName.Small,
+                    Name = CatalogTypeName.Small,
                     Size = 10
                 },
                 new()
                 {
-                    Name = "Medium",
+                    CatalogTypeId = (int)CatalogTypeName.Medium,
+                    Name = CatalogTypeName.Medium,
                     Size = 20
                 },
                 new()
                 {
-                    Name = "Large",
+                    CatalogTypeId = (int)CatalogTypeName.Large,
+                    Name = CatalogTypeName.Large,
                     Size = 45
                 },
                 new()
                 {
-                    Name = "NoLimit",
+                    CatalogTypeId = (int)CatalogTypeName.NoLimit,
+                    Name = CatalogTypeName.NoLimit,
                     Size = 99999
                 }
             };

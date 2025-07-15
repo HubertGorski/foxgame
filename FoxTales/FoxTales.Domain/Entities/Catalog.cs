@@ -14,4 +14,8 @@ public class Catalog
     public virtual User Owner { get; set; } = null!;
 
     public ICollection<Question> Questions { get; set; } = [];
+    public ICollection<CatalogType> AvailableTypes { get; set; } = [];
+
+    public int CatalogTypeId { get; set; }
+    public CatalogType CatalogType { get; set; } = null!;
 }

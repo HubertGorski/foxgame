@@ -1,5 +1,6 @@
 
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
 
 namespace FoxTales.Domain.Interfaces;
 
@@ -24,4 +25,5 @@ public interface IUserRepository
     Task<bool> RemoveQuestion(int questionId);
     Task<int> AddCatalog(Catalog catalog);
     Task<bool> EditCatalog(Catalog catalog);
+    Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    [Migration("20250715192641_AddCatalogTypes")]
+    [Migration("20250715200131_AddCatalogTypes")]
     partial class AddCatalogTypes
     {
         /// <inheritdoc />
@@ -38,6 +38,21 @@ namespace FoxTales.Infrastructure.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("CatalogQuestions", (string)null);
+                });
+
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.Property<int>("CatalogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CatalogId", "CatalogTypeId");
+
+                    b.HasIndex("CatalogTypeId");
+
+                    b.ToTable("CatalogTypeDefinitions", (string)null);
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.Achievement", b =>
@@ -124,15 +139,11 @@ namespace FoxTales.Infrastructure.Migrations
             modelBuilder.Entity("FoxTales.Domain.Entities.CatalogType", b =>
                 {
                     b.Property<int>("CatalogTypeId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CatalogTypeId"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Size")
                         .HasColumnType("int");
@@ -373,6 +384,21 @@ namespace FoxTales.Infrastructure.Migrations
                     b.HasOne("FoxTales.Domain.Entities.Question", null)
                         .WithMany()
                         .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FoxTales.Domain.Entities.CatalogType", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

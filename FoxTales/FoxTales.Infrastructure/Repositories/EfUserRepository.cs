@@ -1,6 +1,9 @@
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 using FoxTales.Application.Exceptions;
+using FoxTales.Domain.Configurations;
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
 using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +39,12 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return await _db.Avatars.ToListAsync();
     }
 
+    public async Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName)
+    {
+        ImmutableList<int> selectedIds = CatalogTypePresets.GetPresetIds(presetName) ?? [];
+        return await _db.CatalogTypes.Where(ct => selectedIds.Contains(ct.CatalogTypeId)).ToListAsync();
+    }
+
     public async Task<User?> GetUserById(int userId)
     {
         return await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
@@ -48,6 +57,7 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .Include(u => u.Role)
             .Include(u => u.Questions)
             .Include(u => u.Catalogs)
+            .ThenInclude(u => u.CatalogType)
             .Include(u => u.UserLimits)
             .ThenInclude(ul => ul.LimitDefinition)
             .ThenInclude(ut => ut.Thresholds)

@@ -1,13 +1,10 @@
-using System.ComponentModel.DataAnnotations;
 using FoxTales.Domain.Enums;
 
-namespace FoxTales.Domain.Entities;
+namespace FoxTales.Application.DTOs.Catalog;
 
-public class CatalogType
+public class CatalogTypeDto
 {
-    [Key]
     public required int CatalogTypeId { get; set; }
     public required CatalogTypeName Name { get; set; }
     public required int Size { get; set; }
-    public ICollection<Catalog> Catalogs { get; set; } = [];
 }

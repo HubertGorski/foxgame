@@ -21,7 +21,6 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
             return;
         }
 
-
         if (deleteDatabase)
         {
             await _context.Database.EnsureDeletedAsync();

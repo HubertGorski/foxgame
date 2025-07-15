@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FoxTales.Infrastructure.Migrations
 {
     [DbContext(typeof(FoxTalesDbContext))]
-    [Migration("20250702204420_AddAvatars")]
-    partial class AddAvatars
+    [Migration("20250715205238_AddCatalogTypes2")]
+    partial class AddCatalogTypes2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,36 @@ namespace FoxTales.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("CatalogQuestions", b =>
+                {
+                    b.Property<int>("CatalogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CatalogId", "QuestionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("CatalogQuestions", (string)null);
+                });
+
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.Property<int>("CatalogId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CatalogId", "CatalogTypeId");
+
+                    b.HasIndex("CatalogTypeId");
+
+                    b.ToTable("CatalogTypeDefinitions", (string)null);
+                });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.Achievement", b =>
                 {
@@ -76,6 +106,56 @@ namespace FoxTales.Infrastructure.Migrations
                     b.HasKey("AvatarId");
 
                     b.ToTable("Avatars", (string)null);
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.Catalog", b =>
+                {
+                    b.Property<int>("CatalogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CatalogId"));
+
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CatalogId");
+
+                    b.HasIndex("CatalogTypeId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Catalogs");
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.CatalogType", b =>
+                {
+                    b.Property<int>("CatalogTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Size")
+                        .HasColumnType("int");
+
+                    b.HasKey("CatalogTypeId");
+
+                    b.ToTable("CatalogTypes", (string)null);
                 });
 
             modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
@@ -160,6 +240,37 @@ namespace FoxTales.Infrastructure.Migrations
                     b.ToTable("LimitThresholds");
                 });
 
+            modelBuilder.Entity("FoxTales.Domain.Entities.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Language")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Questions");
+                });
+
             modelBuilder.Entity("FoxTales.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("TokenId")
@@ -211,6 +322,11 @@ namespace FoxTales.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+                    b.Property<int>("AvatarId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -230,6 +346,8 @@ namespace FoxTales.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("AvatarId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -260,6 +378,55 @@ namespace FoxTales.Infrastructure.Migrations
                     b.ToTable("UserLimits");
                 });
 
+            modelBuilder.Entity("CatalogQuestions", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FoxTales.Domain.Entities.Question", null)
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CatalogTypeDefinitions", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.Catalog", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FoxTales.Domain.Entities.CatalogType", null)
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FoxTales.Domain.Entities.Catalog", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.CatalogType", "CatalogType")
+                        .WithMany()
+                        .HasForeignKey("CatalogTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FoxTales.Domain.Entities.User", "Owner")
+                        .WithMany("Catalogs")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CatalogType");
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("FoxTales.Domain.Entities.DylematyCard", b =>
                 {
                     b.HasOne("FoxTales.Domain.Entities.User", "Owner")
@@ -282,6 +449,17 @@ namespace FoxTales.Infrastructure.Migrations
                     b.Navigation("LimitDefinition");
                 });
 
+            modelBuilder.Entity("FoxTales.Domain.Entities.Question", b =>
+                {
+                    b.HasOne("FoxTales.Domain.Entities.User", "Owner")
+                        .WithMany("Questions")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("FoxTales.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("FoxTales.Domain.Entities.User", "User")
@@ -295,11 +473,19 @@ namespace FoxTales.Infrastructure.Migrations
 
             modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
                 {
+                    b.HasOne("FoxTales.Domain.Entities.Avatar", "Avatar")
+                        .WithMany()
+                        .HasForeignKey("AvatarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("FoxTales.Domain.Entities.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Avatar");
 
                     b.Navigation("Role");
                 });
@@ -331,6 +517,10 @@ namespace FoxTales.Infrastructure.Migrations
             modelBuilder.Entity("FoxTales.Domain.Entities.User", b =>
                 {
                     b.Navigation("Cards");
+
+                    b.Navigation("Catalogs");
+
+                    b.Navigation("Questions");
 
                     b.Navigation("RefreshTokens");
 
