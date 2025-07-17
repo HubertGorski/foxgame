@@ -27,5 +27,5 @@ public interface IUserRepository
     Task<bool> EditCatalog(Catalog catalog);
     Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
     Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds);
-    Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogIds);
+    Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds);
 }

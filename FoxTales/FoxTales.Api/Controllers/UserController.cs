@@ -139,4 +139,11 @@ public class UserController(IUserService userService) : ControllerBase
         bool response = await _userService.EditCatalog(request.Catalog);
         return Ok(response);
     }
+
+    [HttpPost("assignedQuestionsToCatalogs")]
+    public async Task<IActionResult> AssignedQuestionsToCatalogs([FromBody] AssignedQuestionsToCatalogsRequestDto request)
+    {
+        bool response = await _userService.AssignedQuestionsToCatalogs(request.QuestionsIds, request.CatalogsIds);
+        return Ok(response);
+    }
 }

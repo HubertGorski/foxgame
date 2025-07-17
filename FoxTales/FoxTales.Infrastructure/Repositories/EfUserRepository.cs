@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 using FoxTales.Application.Exceptions;
 using FoxTales.Domain.Configurations;
 using FoxTales.Domain.Entities;
@@ -175,7 +174,7 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogIds)
+    public async Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds)
     {
         var questions = await _db.Questions
             .Include(q => q.Catalogs)
@@ -183,7 +182,7 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .ToListAsync();
 
         var catalogs = await _db.Catalogs
-            .Where(ct => catalogIds.Contains(ct.CatalogId!.Value))
+            .Where(ct => catalogsIds.Contains(ct.CatalogId!.Value))
             .ToListAsync();
 
         questions.ForEach(q =>

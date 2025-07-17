@@ -21,4 +21,5 @@ public interface IUserService
     Task<bool> RemoveQuestion(int questionId);
     Task<int> AddCatalog(CreateAndEditCatalogDto request);
     Task<bool> EditCatalog(CreateAndEditCatalogDto request);
+    Task<bool> AssignedQuestionsToCatalogs(List<int> questionsIds, List<int> catalogsIds);
 }

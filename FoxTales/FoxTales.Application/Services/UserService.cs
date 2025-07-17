@@ -146,6 +146,12 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return questionId;
     }
 
+    public async Task<bool> AssignedQuestionsToCatalogs(List<int> questionsIds, List<int> catalogsIds)
+    {
+        await _userRepository.AddQuestionsToCatalogs(questionsIds, catalogsIds);
+        return true;
+    }
+
     public async Task<bool> RemoveQuestion(int questionId)
     {
         return await _userRepository.RemoveQuestion(questionId);

@@ -183,7 +183,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                     j => j.HasOne<Question>()
                         .WithMany()
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict),
+                        .OnDelete(DeleteBehavior.Cascade),
                     j =>
                     {
                         j.HasKey("CatalogId", "QuestionId");
