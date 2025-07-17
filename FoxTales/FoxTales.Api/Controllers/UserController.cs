@@ -127,7 +127,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpPost("addCatalog")]
-    public async Task<IActionResult> AddCatalog([FromBody] AddCatalogRequestDto request)
+    public async Task<IActionResult> AddCatalog([FromBody] CreateAndEditCatalogRequestDto request)
     {
         request.Catalog.OwnerId = User.GetUserId();
         int response = await _userService.AddCatalog(request.Catalog);
@@ -135,7 +135,7 @@ public class UserController(IUserService userService) : ControllerBase
     }
 
     [HttpPost("editCatalog")]
-    public async Task<IActionResult> EditCatalog([FromBody] EditCatalogRequestDto request)
+    public async Task<IActionResult> EditCatalog([FromBody] CreateAndEditCatalogRequestDto request)
     {
         request.Catalog.OwnerId = User.GetUserId();
         bool response = await _userService.EditCatalog(request.Catalog);

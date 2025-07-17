@@ -1,7 +1,8 @@
 namespace FoxTales.Application.DTOs.Catalog;
 
-public class CreateCatalogDto
+public class CreateAndEditCatalogDto
 {
+    public int? CatalogId { get; set; }
     public required string Title { get; set; }
 
     public string? Description { get; set; }
