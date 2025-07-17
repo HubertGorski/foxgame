@@ -19,6 +19,6 @@ public interface IUserService
     Task<bool> SetAvatar(int avatarId, int userId);
     Task<int> AddQuestion(QuestionDto request);
     Task<bool> RemoveQuestion(int questionId);
-    Task<int> AddCatalog(CatalogDto request);
+    Task<int> AddCatalog(CreateCatalogDto request);
     Task<bool> EditCatalog(CatalogDto request);
 }

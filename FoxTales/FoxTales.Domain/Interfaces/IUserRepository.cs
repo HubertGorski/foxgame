@@ -26,4 +26,5 @@ public interface IUserRepository
     Task<int> AddCatalog(Catalog catalog);
     Task<bool> EditCatalog(Catalog catalog);
     Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
+    Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds);
 }

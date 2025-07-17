@@ -53,14 +53,18 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     public async Task<User?> GetUserByEmail(string email)
     {
         return await _db.Users
+            .AsNoTracking()
             .Include(u => u.Avatar)
             .Include(u => u.Role)
             .Include(u => u.Questions)
             .Include(u => u.Catalogs)
-            .ThenInclude(u => u.CatalogType)
+                .ThenInclude(u => u.CatalogType)
+            .Include(u => u.Catalogs)
+                .ThenInclude(u => u.AvailableTypes)
             .Include(u => u.UserLimits)
-            .ThenInclude(ul => ul.LimitDefinition)
-            .ThenInclude(ut => ut.Thresholds)
+                .ThenInclude(ul => ul.LimitDefinition)
+                .ThenInclude(ut => ut.Thresholds)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -152,6 +156,21 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         _db.Catalogs.Add(catalog);
         await _db.SaveChangesAsync();
         return catalog.CatalogId ?? 0;
+    }
+
+    public async Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds)
+    {
+        Catalog catalog = await _db.Catalogs
+            .Include(c => c.AvailableTypes)
+            .FirstAsync(c => c.CatalogId == catalogId);
+
+        List<CatalogType> types = await _db.CatalogTypes
+            .Where(ct => typeIds.Contains(ct.CatalogTypeId))
+            .ToListAsync();
+
+        types.ForEach(t => catalog.AvailableTypes.Add(t));
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task<bool> EditCatalog(Catalog catalog)

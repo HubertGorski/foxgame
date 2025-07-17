@@ -64,11 +64,11 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                     j => j.HasOne<Catalog>()
                         .WithMany()
                         .HasForeignKey("CatalogId")
-                        .OnDelete(DeleteBehavior.Restrict),
+                        .OnDelete(DeleteBehavior.Cascade),
                     j => j.HasOne<CatalogType>()
                         .WithMany()
                         .HasForeignKey("CatalogTypeId")
-                        .OnDelete(DeleteBehavior.Restrict),
+                        .OnDelete(DeleteBehavior.Cascade),
                     j =>
                     {
                         j.HasKey("CatalogId", "CatalogTypeId");

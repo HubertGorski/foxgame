@@ -29,6 +29,9 @@ public class UserProfile : Profile
         CreateMap<Catalog, CatalogDto>()
             .ReverseMap();
 
+        CreateMap<CreateCatalogDto, Catalog>()
+            .ReverseMap();
+
         CreateMap<CatalogType, CatalogTypeDto>()
             .ReverseMap();
 

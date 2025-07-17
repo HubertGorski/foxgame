@@ -149,11 +149,14 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return await _userRepository.RemoveQuestion(questionId);
     }
 
-    public async Task<int> AddCatalog(CatalogDto request)
+    public async Task<int> AddCatalog(CreateCatalogDto request)
     {
         Catalog catalog = _mapper.Map<Catalog>(request);
         catalog.CreatedDate = DateTime.UtcNow;
-        return await _userRepository.AddCatalog(catalog);
+        int catalogId = await _userRepository.AddCatalog(catalog);
+        await _userRepository.AddAvailableTypesToCatalog(catalogId, request.AvailableTypeIds);
+
+        return catalogId;
     }
 
     public async Task<bool> EditCatalog(CatalogDto request)
