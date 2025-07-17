@@ -58,6 +58,8 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .Include(u => u.Role)
             .Include(u => u.Questions)
             .Include(u => u.Catalogs)
+                .ThenInclude(u => u.Questions)
+            .Include(u => u.Catalogs)
                 .ThenInclude(u => u.CatalogType)
             .Include(u => u.Catalogs)
                 .ThenInclude(u => u.AvailableTypes)
@@ -168,7 +170,28 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .Where(ct => typeIds.Contains(ct.CatalogTypeId))
             .ToListAsync();
 
-        types.ForEach(t => catalog.AvailableTypes.Add(t));
+        types.ForEach(catalog.AvailableTypes.Add);
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogIds)
+    {
+        var questions = await _db.Questions
+            .Include(q => q.Catalogs)
+            .Where(q => questionIds.Contains(q.Id!.Value))
+            .ToListAsync();
+
+        var catalogs = await _db.Catalogs
+            .Where(ct => catalogIds.Contains(ct.CatalogId!.Value))
+            .ToListAsync();
+
+        questions.ForEach(q =>
+            catalogs.ForEach(c =>
+            {
+                if (!q.Catalogs.Contains(c))
+                    q.Catalogs.Add(c);
+            }));
 
         await _db.SaveChangesAsync();
     }

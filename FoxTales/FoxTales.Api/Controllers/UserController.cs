@@ -112,9 +112,7 @@ public class UserController(IUserService userService) : ControllerBase
     [HttpPost("addQuestion")]
     public async Task<IActionResult> AddQuestion([FromBody] AddQuestionRequestDto request)
     {
-        if (!User.IsOwner())
-            return Unauthorized();
-
+        request.Question.OwnerId = User.GetUserId();
         int response = await _userService.AddQuestion(request.Question);
         return Ok(response);
     }

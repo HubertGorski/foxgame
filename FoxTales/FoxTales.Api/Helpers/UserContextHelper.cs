@@ -10,11 +10,4 @@ public static class UserContextHelper
         var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? throw new UnauthorizedAccessException(DictHelper.Validation.TokenDoesNotContainUserId);
         return int.Parse(userIdClaim.Value);
     }
-
-    public static bool IsOwner(this ClaimsPrincipal user)
-    {
-        int userId = GetUserId(user);
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? throw new UnauthorizedAccessException(DictHelper.Validation.TokenDoesNotContainUserId);
-        return int.Parse(userIdClaim.Value) == userId;
-    }
 }

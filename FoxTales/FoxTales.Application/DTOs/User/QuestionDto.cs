@@ -9,4 +9,5 @@ public class QuestionDto
     public bool IsPublic { get; set; }
     public required Language Language { get; set; }
     public int OwnerId { get; set; }
+    public List<int> CatalogIds { get; set; } = [];
 }
