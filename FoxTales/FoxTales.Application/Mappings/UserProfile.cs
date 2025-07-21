@@ -24,6 +24,7 @@ public class UserProfile : Profile
             .ReverseMap();
 
         CreateMap<Question, QuestionDto>()
+            .ForMember(dest => dest.CatalogIds, opt => opt.MapFrom(src => src.Catalogs.Select(c => c.CatalogId)))
             .ReverseMap();
 
         CreateMap<Catalog, CatalogDto>()
