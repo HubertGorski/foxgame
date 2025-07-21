@@ -23,8 +23,8 @@ public interface IUserRepository
     Task<bool> SetAvatar(int avatarId, int userId);
     Task<int> AddQuestion(Question question);
     Task<bool> RemoveQuestion(int questionId);
-    Task<int> AddCatalog(Catalog catalog);
-    Task<bool> EditCatalog(Catalog catalog);
+    Task<int> AddCatalog(Catalog catalog, List<int> newQuestionIds);
+    Task<bool> EditCatalog(Catalog catalog, List<int> newQuestionIds);
     Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
     Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds);
     Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds);

@@ -153,8 +153,17 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
         return true;
     }
-    public async Task<int> AddCatalog(Catalog catalog)
+    public async Task<int> AddCatalog(Catalog catalog, List<int> newQuestionIds)
     {
+        var newQuestions = await _db.Questions
+        .Where(q => newQuestionIds.Contains(q.Id.Value))
+        .ToListAsync();
+
+        foreach (var q in newQuestions)
+        {
+            catalog.Questions.Add(q);
+        }
+
         _db.Catalogs.Add(catalog);
         await _db.SaveChangesAsync();
         return catalog.CatalogId ?? 0;
@@ -196,8 +205,18 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task<bool> EditCatalog(Catalog catalog)
+    public async Task<bool> EditCatalog(Catalog catalog, List<int> newQuestionIds)
     {
+        var newQuestions = await _db.Questions
+        .Where(q => newQuestionIds.Contains(q.Id.Value))
+        .ToListAsync();
+
+        catalog.Questions.Clear(); //TODO: naprawic edytowanie listy pytan
+        foreach (var q in newQuestions)
+        {
+            catalog.Questions.Add(q);
+        }
+
         _db.Catalogs.Update(catalog);
         await _db.SaveChangesAsync();
         return true;

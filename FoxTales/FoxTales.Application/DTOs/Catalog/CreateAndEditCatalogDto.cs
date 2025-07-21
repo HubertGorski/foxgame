@@ -12,4 +12,5 @@ public class CreateAndEditCatalogDto
     public required int CatalogTypeId { get; set; }
 
     public List<int> AvailableTypeIds { get; set; } = [];
+    public List<int> QuestionsIds { get; set; } = [];
 }

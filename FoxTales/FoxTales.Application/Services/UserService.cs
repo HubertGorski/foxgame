@@ -161,7 +161,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     {
         Catalog catalog = _mapper.Map<Catalog>(request);
         catalog.CreatedDate = DateTime.UtcNow;
-        int catalogId = await _userRepository.AddCatalog(catalog);
+        int catalogId = await _userRepository.AddCatalog(catalog, request.QuestionsIds);
         await _userRepository.AddAvailableTypesToCatalog(catalogId, request.AvailableTypeIds);
 
         return catalogId;
@@ -173,6 +173,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             throw new NotFoundException("Catalog doesn't exist!");
 
         Catalog catalog = _mapper.Map<Catalog>(request);
-        return await _userRepository.EditCatalog(catalog);
+        return await _userRepository.EditCatalog(catalog, request.QuestionsIds);
     }
 }
