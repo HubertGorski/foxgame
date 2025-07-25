@@ -2,6 +2,7 @@ using FoxTales.Composition;
 using FoxTales.Api.Middleware;
 using FoxTales.Api.Platform;
 using FluentValidation.AspNetCore;
+using FoxTales.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services.AddControllers().AddFluentValidation(); //TODO: Zmienic na nows
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
 {
@@ -48,4 +51,5 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<PsychHub>("/psychhub");
 await app.RunAsync();
