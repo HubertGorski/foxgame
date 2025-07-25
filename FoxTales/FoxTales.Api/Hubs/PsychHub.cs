@@ -1,4 +1,5 @@
 using FoxTales.Application.DTOs.Psych;
+using FoxTales.Application.Helpers;
 using Microsoft.AspNetCore.SignalR;
 using GameCode = System.String;
 
@@ -10,7 +11,7 @@ public class PsychHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var (gameCode, player) = FindPlayer(Context.ConnectionId);
+        var (gameCode, player) = FindPlayerByConnectionId(Context.ConnectionId);
         if (gameCode == null || player == null)
         {
             await base.OnDisconnectedAsync(exception);
@@ -23,14 +24,17 @@ public class PsychHub : Hub
 
     public async Task JoinRoom(string gameCode, PlayerDto player)
     {
-        if (!Rooms.ContainsKey(gameCode))
-            Rooms[gameCode] = [];
+        if (FindPlayerByUserId(player.UserId) != (null, null))
+        {
+            await Clients.Caller.SendAsync("ReceiveError", DictHelper.Validation.YouAreAlreadyAuthenticated);
+            return;
+        }
 
+        if (!Rooms.ContainsKey(gameCode)) Rooms[gameCode] = [];
         player.ConnectionId = Context.ConnectionId;
         Rooms[gameCode].Add(player);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
-        await Clients.Group(gameCode).SendAsync("PlayerJoined", player);
         await Clients.Group(gameCode).SendAsync("GetPlayers", GetPlayers(gameCode));
     }
 
@@ -56,11 +60,22 @@ public class PsychHub : Hub
         return Rooms.GetValueOrDefault(gameCode)?.ToList() ?? [];
     }
 
-    private static (string? Room, PlayerDto? Player) FindPlayer(string connectionId)
+    private static (string? Room, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
     {
         foreach (var room in Rooms)
         {
             var player = room.Value.FirstOrDefault(p => p.ConnectionId == connectionId);
+            if (player != null)
+                return (room.Key, player);
+        }
+        return (null, null);
+    }
+
+    private static (string? Room, PlayerDto? Player) FindPlayerByUserId(int userId)
+    {
+        foreach (var room in Rooms)
+        {
+            var player = room.Value.FirstOrDefault(p => p.UserId == userId);
             if (player != null)
                 return (room.Key, player);
         }
