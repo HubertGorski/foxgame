@@ -44,6 +44,14 @@ public class PsychHub : Hub
         await AddPlayerToRoom(gameCode, player);
     }
 
+    public async Task EditRoom(RoomDto room)
+    {
+        if (room.Code == null) return;
+
+        Rooms[room.Code] = room;
+        await Clients.Group(room.Code).SendAsync("LoadRoom", room);
+    }
+
     private async Task AddPlayerToRoom(string gameCode, PlayerDto player)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
