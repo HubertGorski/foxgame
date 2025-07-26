@@ -7,7 +7,7 @@ namespace FoxTales.Api.Hubs;
 
 public class PsychHub : Hub
 {
-    private static readonly Dictionary<GameCode, List<PlayerDto>> Rooms = [];
+    private static readonly Dictionary<GameCode, RoomDto> Rooms = [];
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
@@ -22,74 +22,94 @@ public class PsychHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public string GenerateAndBookCode()
+    public async Task CreateRoom(RoomDto room)
     {
-        string newCode = RoomCodeGenerator.GenerateUniqueCode(code => !Rooms.ContainsKey(code));
-        Rooms.Add(newCode, []);
-        return newCode;
+        await RemoveAllRoomsByOwnerId(room.Owner.UserId);
+        room.Code = RoomCodeGenerator.GenerateUniqueCode(code => !Rooms.ContainsKey(code));
+        Rooms.Add(room.Code, room);
+        await AddPlayerToRoom(room.Code, room.Owner);
+        await Clients.Group(room.Code).SendAsync("GetGameCode", room.Code);
     }
 
     public async Task JoinRoom(string gameCode, PlayerDto player)
     {
+        await RemoveAllRoomsByOwnerId(player.UserId);
         if (FindPlayerByUserId(player.UserId) != (null, null))
         {
             await Clients.Caller.SendAsync("ReceiveError", DictHelper.Validation.YouAreAlreadyAuthenticated);
             return;
         }
 
-        if (!Rooms.ContainsKey(gameCode)) Rooms[gameCode] = [];
-        player.ConnectionId = Context.ConnectionId;
-        Rooms[gameCode].Add(player);
+        await Clients.Client(Context.ConnectionId).SendAsync("LoadRoom", Rooms.GetValueOrDefault(gameCode));
+        await AddPlayerToRoom(gameCode, player);
+    }
 
+    private async Task AddPlayerToRoom(string gameCode, PlayerDto player)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveError", DictHelper.Validation.RoomDoesntExist);
+            return;
+        }
+
+        player.ConnectionId = Context.ConnectionId;
+        room.Users.Add(player);
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         await Clients.Group(gameCode).SendAsync("GetPlayers", GetPlayers(gameCode));
+
     }
 
     public async Task LeaveRoom(string gameCode, int playerId)
     {
-        if (!Rooms.TryGetValue(gameCode, out var roomPlayers))
-            throw new KeyNotFoundException($"Room with code {gameCode} not found");
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveError", DictHelper.Validation.RoomDoesntExist);
+            return;
+        }
 
-        var playerToRemove = roomPlayers.FirstOrDefault(p => p.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
-        roomPlayers.Remove(playerToRemove);
+        PlayerDto playerToRemove = room.Users.FirstOrDefault(p => p.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+        room.Users.Remove(playerToRemove);
 
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, gameCode);
         await Clients.Group(gameCode).SendAsync("PlayerLeft", playerId);
 
-        if (roomPlayers.Count == 0)
+        if (room.Users.Count == 0 || room.Owner.UserId == playerId)
         {
-            Rooms.Remove(gameCode);
+            await RemoveRoom(gameCode);
         }
     }
 
     public async Task RemoveRoom(string gameCode)
     {
-        if (!Rooms.TryGetValue(gameCode, out var roomPlayers))
-            throw new KeyNotFoundException($"Room with code {gameCode} not found");
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
+        {
+            await Clients.Caller.SendAsync("ReceiveError", DictHelper.Validation.RoomDoesntExist);
+            return;
+        }
 
-        foreach (var player in roomPlayers.ToList())
+        await Clients.Group(gameCode).SendAsync("RoomClosed");
+        foreach (var player in room.Users.ToList())
         {
             await Groups.RemoveFromGroupAsync(player.ConnectionId, gameCode);
         }
 
-        await Clients.Group(gameCode).SendAsync("RoomClosed", $"Room {gameCode} is closing");
         Rooms.Remove(gameCode);
-        await Clients.Caller.SendAsync("RoomRemoved", $"Room {gameCode} successfully removed");
     }
 
     private static List<PlayerDto> GetPlayers(string gameCode)
     {
-        return Rooms.GetValueOrDefault(gameCode)?.ToList() ?? [];
+        return Rooms.GetValueOrDefault(gameCode)?.Users?.ToList() ?? [];
     }
 
     private static (string? Room, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
     {
         foreach (var room in Rooms)
         {
-            var player = room.Value.FirstOrDefault(p => p.ConnectionId == connectionId);
-            if (player != null)
-                return (room.Key, player);
+            if (room.Value == null) return (null, null);
+            var player = room.Value.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
+            if (player != null) return (room.Key, player);
         }
+
         return (null, null);
     }
 
@@ -97,10 +117,21 @@ public class PsychHub : Hub
     {
         foreach (var room in Rooms)
         {
-            var player = room.Value.FirstOrDefault(p => p.UserId == userId);
-            if (player != null)
-                return (room.Key, player);
+            if (room.Value == null) return (null, null);
+            var player = room.Value.Users.FirstOrDefault(p => p.UserId == userId);
+            if (player != null) return (room.Key, player);
         }
+
         return (null, null);
+    }
+
+    public async Task RemoveAllRoomsByOwnerId(int ownerId)
+    {
+        var codes = Rooms.Values
+            .Where(r => r.Owner.UserId == ownerId && r.Code is not null)
+            .Select(r => r.Code!)
+            .ToList();
+
+        await Task.WhenAll(codes.Select(RemoveRoom));
     }
 }
