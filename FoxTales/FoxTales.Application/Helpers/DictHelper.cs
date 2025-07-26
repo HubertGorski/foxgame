@@ -17,5 +17,6 @@ public static class DictHelper
         public const string YouAreAlreadyAuthenticated = "youAreAlreadyAuthenticated";
         public const string TokenDoesNotContainUserId = "tokenDoesNotContainUserId";
         public const string RoomDoesntExist = "roomDoesntExist";
+        public const string InvalidPassword = "invalidPassword";
     }
 }
