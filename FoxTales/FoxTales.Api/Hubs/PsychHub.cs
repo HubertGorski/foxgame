@@ -22,6 +22,13 @@ public class PsychHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
+    public string GenerateAndBookCode()
+    {
+        string newCode = RoomCodeGenerator.GenerateUniqueCode(code => !Rooms.ContainsKey(code));
+        Rooms.Add(newCode, []);
+        return newCode;
+    }
+
     public async Task JoinRoom(string gameCode, PlayerDto player)
     {
         if (FindPlayerByUserId(player.UserId) != (null, null))
@@ -53,6 +60,21 @@ public class PsychHub : Hub
         {
             Rooms.Remove(gameCode);
         }
+    }
+
+    public async Task RemoveRoom(string gameCode)
+    {
+        if (!Rooms.TryGetValue(gameCode, out var roomPlayers))
+            throw new KeyNotFoundException($"Room with code {gameCode} not found");
+
+        foreach (var player in roomPlayers.ToList())
+        {
+            await Groups.RemoveFromGroupAsync(player.ConnectionId, gameCode);
+        }
+
+        await Clients.Group(gameCode).SendAsync("RoomClosed", $"Room {gameCode} is closing");
+        Rooms.Remove(gameCode);
+        await Clients.Caller.SendAsync("RoomRemoved", $"Room {gameCode} successfully removed");
     }
 
     private static List<PlayerDto> GetPlayers(string gameCode)
