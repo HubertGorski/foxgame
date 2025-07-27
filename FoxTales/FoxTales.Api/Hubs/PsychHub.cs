@@ -3,6 +3,7 @@ using FoxTales.Application.Helpers;
 using Microsoft.AspNetCore.SignalR;
 using GameCode = System.String;
 using CommonGroup = System.String;
+using FoxTales.Application.DTOs.User;
 
 namespace FoxTales.Api.Hubs;
 
@@ -87,6 +88,15 @@ public class PsychHub : Hub
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, JOIN_GAME_VIEW);
         await Clients.Group(gameCode).SendAsync("GetPlayers", GetPlayers(gameCode));
         await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+    }
+
+    public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+
+        room.Questions.RemoveAll(q => q.OwnerId == playerId);
+        room.Questions.AddRange(questions);
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
 
     public async Task LeaveRoom(string gameCode, int playerId)

@@ -1,3 +1,5 @@
+using FoxTales.Application.DTOs.User;
+
 namespace FoxTales.Application.DTOs.Psych;
 
 public class RoomDto
@@ -10,4 +12,5 @@ public class RoomDto
     public bool UsePublicQuestions { get; set; }
     public bool UsePrivateQuestions { get; set; }
     public bool IsQuestionsFromAnotherGamesAllowed { get; set; }
+    public List<QuestionDto> Questions { get; set; } = [];
 }
