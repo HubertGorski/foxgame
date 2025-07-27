@@ -153,11 +153,25 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
         return true;
     }
+    public async Task<bool> RemoveQuestions(List<int> questionIds)
+    {
+        var questionsToRemove = await _db.Questions
+            .Where(q => questionIds.Contains(q.Id.Value))
+            .ToListAsync();
+
+        if (questionsToRemove.Count == 0)
+            return false;
+
+        _db.Questions.RemoveRange(questionsToRemove);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<int> AddCatalog(Catalog catalog, List<int> newQuestionIds)
     {
         var newQuestions = await _db.Questions
-        .Where(q => newQuestionIds.Contains(q.Id.Value))
-        .ToListAsync();
+            .Where(q => newQuestionIds.Contains(q.Id.Value))
+            .ToListAsync();
 
         foreach (var q in newQuestions)
         {
@@ -205,19 +219,24 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task<bool> EditCatalog(Catalog catalog, List<int> newQuestionIds)
+    public async Task<bool> EditCatalog(Catalog catalog)
     {
-        var newQuestions = await _db.Questions
-        .Where(q => newQuestionIds.Contains(q.Id.Value))
-        .ToListAsync();
+        var existingCatalog = await _db.Catalogs
+            .Include(c => c.Questions)
+            .FirstOrDefaultAsync(c => c.CatalogId == catalog.CatalogId) ?? throw new NotFoundException("Catalog not found");
 
-        catalog.Questions.Clear(); //TODO: naprawic edytowanie listy pytan
-        foreach (var q in newQuestions)
+        _db.Entry(existingCatalog).CurrentValues.SetValues(catalog);
+
+        var newQuestions = await _db.Questions
+            .Where(q => catalog.QuestionsIds.Contains(q.Id.Value))
+            .ToListAsync();
+
+        existingCatalog.Questions.Clear();
+        foreach (var question in newQuestions)
         {
-            catalog.Questions.Add(q);
+            existingCatalog.Questions.Add(question);
         }
 
-        _db.Catalogs.Update(catalog);
         await _db.SaveChangesAsync();
         return true;
     }

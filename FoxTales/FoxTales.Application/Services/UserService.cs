@@ -157,6 +157,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return await _userRepository.RemoveQuestion(questionId);
     }
 
+    public async Task<bool> RemoveQuestions(List<int> questionIds)
+    {
+        return await _userRepository.RemoveQuestions(questionIds);
+    }
+
     public async Task<int> AddCatalog(CreateAndEditCatalogDto request)
     {
         Catalog catalog = _mapper.Map<Catalog>(request);
@@ -173,6 +178,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             throw new NotFoundException("Catalog doesn't exist!");
 
         Catalog catalog = _mapper.Map<Catalog>(request);
-        return await _userRepository.EditCatalog(catalog, request.QuestionsIds);
+        return await _userRepository.EditCatalog(catalog);
     }
 }
