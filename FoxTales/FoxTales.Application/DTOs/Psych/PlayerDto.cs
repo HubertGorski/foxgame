@@ -8,4 +8,6 @@ public class PlayerDto
     public string? ConnectionId { get; set; } = null;
     public required string Username { get; set; }
     public required AvatarDto Avatar { get; set; }
+    public bool IsReady { get; set; } = false;
+    public int PointsInGame { get; set; }
 }

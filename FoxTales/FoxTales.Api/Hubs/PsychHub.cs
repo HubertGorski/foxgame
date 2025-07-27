@@ -69,6 +69,14 @@ public class PsychHub : Hub
         await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
     }
 
+    public async Task SetStatus(string gameCode, int playerId, bool status)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        PlayerDto user = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+        user.IsReady = status;
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+    }
+
     private async Task AddPlayerToRoom(string gameCode, PlayerDto player)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
