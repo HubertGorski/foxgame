@@ -1,5 +1,3 @@
-using System;
-
 namespace FoxTales.Application.DTOs.User;
 
 public class RemoveQuestionRequestDto

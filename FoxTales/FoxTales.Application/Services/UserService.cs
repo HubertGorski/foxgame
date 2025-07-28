@@ -157,6 +157,11 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return await _userRepository.RemoveQuestion(questionId);
     }
 
+    public async Task<bool> RemoveCatalog(int catalogId)
+    {
+        return await _userRepository.RemoveCatalog(catalogId);
+    }
+
     public async Task<bool> RemoveQuestions(List<int> questionIds)
     {
         return await _userRepository.RemoveQuestions(questionIds);

@@ -143,6 +143,21 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return question.Id ?? 0;
     }
 
+    public async Task<bool> RemoveCatalog(int catalogId)
+    {
+        var catalog = await _db.Catalogs
+            .Include(c => c.Questions)
+            .FirstOrDefaultAsync(c => c.CatalogId == catalogId);
+
+        if (catalog == null)
+            return false;
+
+        catalog.Questions.Clear();
+        _db.Catalogs.Remove(catalog);
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> RemoveQuestion(int questionId)
     {
         var question = await _db.Questions.FindAsync(questionId);

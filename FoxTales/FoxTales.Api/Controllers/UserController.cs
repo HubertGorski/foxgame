@@ -131,6 +131,13 @@ public class UserController(IUserService userService) : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("removeCatalog")]
+    public async Task<IActionResult> RemoveCatalog([FromBody] RemoveCatalogRequestDto request)
+    {
+        bool response = await _userService.RemoveCatalog(request.CatalogId);
+        return Ok(response);
+    }
+
     [HttpPost("addCatalog")]
     public async Task<IActionResult> AddCatalog([FromBody] CreateAndEditCatalogRequestDto request)
     {
