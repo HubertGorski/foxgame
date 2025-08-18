@@ -1,3 +1,4 @@
+using FoxTales.Application.DTOs.Psych;
 using FoxTales.Domain.Enums;
 
 namespace FoxTales.Application.DTOs.User;
