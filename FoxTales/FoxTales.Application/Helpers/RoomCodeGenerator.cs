@@ -5,7 +5,7 @@ public static class RoomCodeGenerator
     private static readonly Random _random = new();
     private static readonly string[] _words =
     {
-        "PIES", "KOT", "DOM", "BURZA", "SUN", "LAS", "WODA",
+        "PIES", "KOT", "DOM", "BURZA", "SUM", "LAS", "WODA",
         "OGNIA", "MIASTO", "AUTO", "GORA", "MORZE", "NOC", "DZIEN"
     };
 

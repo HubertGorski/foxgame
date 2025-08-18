@@ -10,4 +10,5 @@ public class PlayerDto
     public required AvatarDto Avatar { get; set; }
     public bool IsReady { get; set; } = false;
     public int PointsInGame { get; set; }
+    public AnswerDto? Answer { get; set; }
 }

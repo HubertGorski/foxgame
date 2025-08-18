@@ -67,7 +67,7 @@ public class PsychHub : Hub
 
         Rooms[room.Code] = room;
         await Clients.Group(room.Code).SendAsync("LoadRoom", room);
-        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
     public async Task SetStatus(string gameCode, int playerId, bool status)
@@ -87,7 +87,7 @@ public class PsychHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, JOIN_GAME_VIEW);
         await Clients.Group(gameCode).SendAsync("GetPlayers", GetPlayers(gameCode));
-        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
     public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
@@ -113,13 +113,14 @@ public class PsychHub : Hub
         {
             await RemoveRoom(gameCode);
         }
-        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+
+        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
     public async Task GoToJoinGameView()
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, JOIN_GAME_VIEW);
-        await Clients.Client(Context.ConnectionId).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+        await Clients.Client(Context.ConnectionId).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
     public async Task RemoveRoom(string gameCode)
@@ -133,7 +134,7 @@ public class PsychHub : Hub
         }
 
         Rooms.Remove(gameCode);
-        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic).Select(r => r.Value));
+        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
     private static List<PlayerDto> GetPlayers(string gameCode)
@@ -173,5 +174,51 @@ public class PsychHub : Hub
             .ToList();
 
         await Task.WhenAll(codes.Select(RemoveRoom));
+    }
+
+    public async Task StartGame(string gameCode)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+
+        room.IsGameStarted = true;
+        room.Round = 1;
+        room.Users.ForEach(u => u.IsReady = false);
+
+        // TODO: opracować sensowniejszą losowość
+        Random rnd = new();
+        room.CurrentQuestion = room.Questions[rnd.Next(room.Questions.Count)];
+        room.CurrentQuestion.CurrentUser = room.Users[rnd.Next(room.Users.Count)];
+
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+        await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
+    }
+    public async Task MarkAllUsersUnready(string gameCode)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        room.Users.ForEach(u => u.IsReady = false);
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+    }
+
+    public async Task AddAnswer(string gameCode, AnswerDto answer)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        PlayerDto user = room.Users.FirstOrDefault(u => u.UserId == answer.OwnerId) ?? throw new InvalidOperationException($"Player {answer.OwnerId} not found in room {gameCode}");
+
+        user.IsReady = true;
+        user.Answer = answer;
+
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+    }
+
+    public async Task ChooseAnswer(string gameCode, int playerId, int selectedAnswerUserId)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        PlayerDto currentPlayer = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+        PlayerDto selectedUser = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {gameCode}");
+
+        currentPlayer.IsReady = true;
+        if (selectedUser.Answer != null) selectedUser.Answer.VotersCount++; // TODO: zabezpieczyc przed duplikacja glosow
+
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
 }

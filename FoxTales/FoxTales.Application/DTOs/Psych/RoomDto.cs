@@ -13,4 +13,7 @@ public class RoomDto
     public bool UsePrivateQuestions { get; set; }
     public bool IsQuestionsFromAnotherGamesAllowed { get; set; }
     public List<QuestionDto> Questions { get; set; } = [];
+    public QuestionDto? CurrentQuestion { get; set; }
+    public bool IsGameStarted { get; set; } = false;
+    public int Round { get; set; } = 0;
 }
