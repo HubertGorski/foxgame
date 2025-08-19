@@ -83,6 +83,7 @@ public class PsychHub : Hub
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
 
         player.ConnectionId = Context.ConnectionId;
+        player.IsReady = false;
         room.Users.Add(player);
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, JOIN_GAME_VIEW);
@@ -185,6 +186,8 @@ public class PsychHub : Hub
         room.Users.ForEach(u => u.IsReady = false);
 
         // TODO: opracować sensowniejszą losowość
+        if (room.Questions.Count == 0) return;
+
         Random rnd = new();
         room.CurrentQuestion = room.Questions[rnd.Next(room.Questions.Count)];
         room.CurrentQuestion.CurrentUser = room.Users[rnd.Next(room.Users.Count)];
@@ -216,8 +219,10 @@ public class PsychHub : Hub
         PlayerDto currentPlayer = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
         PlayerDto selectedUser = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {gameCode}");
 
-        currentPlayer.IsReady = true;
         if (selectedUser.Answer != null) selectedUser.Answer.VotersCount++; // TODO: zabezpieczyc przed duplikacja glosow
+        currentPlayer.IsReady = true;
+        selectedUser.VotersIdsForHisAnswer.Add(currentPlayer.UserId);
+        selectedUser.PointsInGame += 10; //TODO: zrobic sensowniejszy przydzial punktow
 
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
