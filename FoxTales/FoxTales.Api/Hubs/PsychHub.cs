@@ -198,6 +198,9 @@ public class PsychHub : Hub
     public async Task MarkAllUsersUnready(string gameCode)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+        if (room.Owner == player) return;
+
         room.Users.ForEach(u => u.IsReady = false);
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
@@ -219,11 +222,47 @@ public class PsychHub : Hub
         PlayerDto currentPlayer = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
         PlayerDto selectedUser = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {gameCode}");
 
-        if (selectedUser.Answer != null) selectedUser.Answer.VotersCount++; // TODO: zabezpieczyc przed duplikacja glosow
+        UpdateVotePool(currentPlayer, selectedUser);
+
         currentPlayer.IsReady = true;
-        selectedUser.VotersIdsForHisAnswer.Add(currentPlayer.UserId);
         selectedUser.PointsInGame += 10; //TODO: zrobic sensowniejszy przydzial punktow
 
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+    }
+
+    public static void UpdateVotePool(PlayerDto voter, PlayerDto owner)
+    {
+        if (owner.VotersIdsForHisAnswer.Contains(voter.UserId) || owner.Answer == null) return;
+
+        owner.Answer.VotersCount++;
+        if (!owner.VotersIdsForHisAnswer.Contains(voter.UserId))
+            owner.VotersIdsForHisAnswer.Add(voter.UserId);
+
+        var index = owner.VotersAndVoteCounts.FindIndex(kv => kv.Key == voter.UserId);
+
+        if (index >= 0)
+            owner.VotersAndVoteCounts[index] = new KeyValuePair<int, int>(voter.UserId, owner.VotersAndVoteCounts[index].Value + 1);
+        else
+            owner.VotersAndVoteCounts.Add(new KeyValuePair<int, int>(voter.UserId, 1));
+    }
+
+
+
+    public async Task SetReady(string gameCode, int playerId)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        PlayerDto player = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+
+        player.IsReady = true;
+        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
+    }
+
+    public async Task SetNewRound(string gameCode)
+    {
+        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+
+        room.Round += 1;
+        room.Users.ForEach(u => u.VotersIdsForHisAnswer = []);
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
 }

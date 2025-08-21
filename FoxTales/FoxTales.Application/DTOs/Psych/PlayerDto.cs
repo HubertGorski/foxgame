@@ -12,4 +12,5 @@ public class PlayerDto
     public int PointsInGame { get; set; }
     public AnswerDto? Answer { get; set; }
     public List<int> VotersIdsForHisAnswer { get; set; } = [];
+    public List<KeyValuePair<int, int>> VotersAndVoteCounts { get; set; } = [];
 }
