@@ -28,7 +28,13 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetIsOriginAllowed(origin =>
+                {
+                    if (origin.StartsWith("http://localhost")) return true;
+                    if (origin.StartsWith("http://192.168.100.")) return true;
+                    return false;
+                });
     });
 });
 
@@ -52,4 +58,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PsychHub>("/psychhub");
+
+app.Urls.Add("http://0.0.0.0:5161");
 await app.RunAsync();
