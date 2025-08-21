@@ -199,7 +199,7 @@ public class PsychHub : Hub
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
-        if (room.Owner == player) return;
+        if (player != null && room.Owner.UserId == player.UserId) return;
 
         room.Users.ForEach(u => u.IsReady = false);
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
@@ -246,20 +246,11 @@ public class PsychHub : Hub
             owner.VotersAndVoteCounts.Add(new KeyValuePair<int, int>(voter.UserId, 1));
     }
 
-
-
-    public async Task SetReady(string gameCode, int playerId)
-    {
-        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
-        PlayerDto player = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
-
-        player.IsReady = true;
-        await Clients.Group(gameCode).SendAsync("LoadRoom", room);
-    }
-
     public async Task SetNewRound(string gameCode)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
+        if (player != null && room.Owner.UserId == player.UserId) return;
 
         room.Round += 1;
         room.Users.ForEach(u => u.VotersIdsForHisAnswer = []);
