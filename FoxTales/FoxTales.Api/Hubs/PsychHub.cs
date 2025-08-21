@@ -199,7 +199,7 @@ public class PsychHub : Hub
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
-        if (player != null && room.Owner.UserId == player.UserId) return;
+        if (player == null || room.Owner.UserId != player.UserId) return;
 
         room.Users.ForEach(u => u.IsReady = false);
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
@@ -219,21 +219,21 @@ public class PsychHub : Hub
     public async Task ChooseAnswer(string gameCode, int playerId, int selectedAnswerUserId)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
-        PlayerDto currentPlayer = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
-        PlayerDto selectedUser = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {gameCode}");
+        PlayerDto voter = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+        PlayerDto owner = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {gameCode}");
 
-        UpdateVotePool(currentPlayer, selectedUser);
+        if (owner.VotersIdsForHisAnswer.Contains(voter.UserId) || owner.Answer == null) return;
 
-        currentPlayer.IsReady = true;
-        selectedUser.PointsInGame += 10; //TODO: zrobic sensowniejszy przydzial punktow
+        UpdateVotePool(voter, owner);
+
+        voter.IsReady = true;
+        owner.PointsInGame += 10; //TODO: zrobic sensowniejszy przydzial punktow
 
         await Clients.Group(gameCode).SendAsync("LoadRoom", room);
     }
 
     public static void UpdateVotePool(PlayerDto voter, PlayerDto owner)
     {
-        if (owner.VotersIdsForHisAnswer.Contains(voter.UserId) || owner.Answer == null) return;
-
         owner.Answer.VotersCount++;
         if (!owner.VotersIdsForHisAnswer.Contains(voter.UserId))
             owner.VotersIdsForHisAnswer.Add(voter.UserId);
@@ -250,7 +250,7 @@ public class PsychHub : Hub
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
-        if (player != null && room.Owner.UserId == player.UserId) return;
+        if (player == null || room.Owner.UserId != player.UserId) return;
 
         room.Round += 1;
         room.Users.ForEach(u => u.VotersIdsForHisAnswer = []);
