@@ -16,4 +16,5 @@ public class RoomDto
     public QuestionDto? CurrentQuestion { get; set; }
     public bool IsGameStarted { get; set; } = false;
     public int Round { get; set; } = 0;
+    public List<KeyValuePair<int, int>> UsersAndSelectionCounts { get; set; } = [];
 }
