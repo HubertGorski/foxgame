@@ -194,7 +194,7 @@ public class PsychHub : Hub
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null || room.Questions.Count == 0) return;
 
         room.IsGameStarted = true;
-        UpdateUserSelectionPool(room, room.Owner.UserId);
+
         await SetNewRound(gameCode);
         await RefreshPublicRoomsList();
     }
@@ -255,6 +255,13 @@ public class PsychHub : Hub
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == Context.ConnectionId);
         if (player == null || room.Owner.UserId != player.UserId) return;
 
+        if (room.Questions.Count == 0)
+        {
+            room.HasGameEnded = true;
+            await RefreshRoom(room);
+            return;
+        }
+
         room.Round += 1;
         room.Users.ForEach(u => u.IsReady = false);
         room.Users.ForEach(u => u.VotersIdsForHisAnswer = []);
@@ -262,39 +269,28 @@ public class PsychHub : Hub
         QuestionDto question = GetNewCurrentQuestionWithSelectedPlayer(room);
         if (question.CurrentUser == null) throw new InvalidOperationException($"Player not found in room {gameCode}");
 
-        UpdateUserSelectionPool(room, question.CurrentUser.UserId);
         room.CurrentQuestion = question;
         room.Questions.Remove(question);
 
         await RefreshRoom(room);
     }
 
-    public static void UpdateUserSelectionPool(RoomDto room, int userId)
-    {
-        var index = room.UsersAndSelectionCounts.FindIndex(kv => kv.Key == userId);
-
-        if (index >= 0)
-            room.UsersAndSelectionCounts[index] = new KeyValuePair<int, int>(userId, room.UsersAndSelectionCounts[index].Value + 1);
-        else
-            room.UsersAndSelectionCounts.Add(new KeyValuePair<int, int>(userId, 1));
-    }
-
     public static QuestionDto GetNewCurrentQuestionWithSelectedPlayer(RoomDto room)
     {
-        if (room.Questions.Count == 0) throw new InvalidOperationException($"Question list is empty");
-        if (room.UsersAndSelectionCounts.Count == 0) throw new InvalidOperationException($"Users list is empty");
-
         Random rnd = new();
         QuestionDto currentQuestion = room.Questions[rnd.Next(room.Questions.Count)];
 
-        var eligibleUsers = room.UsersAndSelectionCounts
-            .Where(u => u.Value == room.UsersAndSelectionCounts.Min(u => u.Value))
+        var minSelectionCount = room.Users.Min(u => u.SelectionCount);
+
+        var eligibleUsers = room.Users
+            .Where(u => u.SelectionCount == minSelectionCount)
             .ToList();
 
-        int selectedUserId = eligibleUsers[rnd.Next(eligibleUsers.Count)].Key;
-        PlayerDto selectedPlayer = room.Users.FirstOrDefault(u => u.UserId == selectedUserId) ?? throw new InvalidOperationException($"Invalid user Id");
+        PlayerDto selectedPlayer = eligibleUsers[rnd.Next(eligibleUsers.Count)];
+
         currentQuestion.CurrentUser = selectedPlayer;
         currentQuestion.Text = currentQuestion.Text.Replace("****", selectedPlayer.Username);
+        selectedPlayer.SelectionCount += 1;
 
         return currentQuestion;
     }
