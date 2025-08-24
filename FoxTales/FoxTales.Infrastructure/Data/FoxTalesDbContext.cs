@@ -48,6 +48,24 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                 .WithMany()
                 .HasForeignKey(c => c.CatalogTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasMany(c => c.Questions)
+                .WithMany(q => q.Catalogs)
+                .UsingEntity<Dictionary<string, object>>(
+                    "CatalogQuestions",
+                    j => j.HasOne<Question>()
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j.HasOne<Catalog>()
+                        .WithMany()
+                        .HasForeignKey("CatalogId")
+                        .OnDelete(DeleteBehavior.Restrict),
+                    j =>
+                    {
+                        j.HasKey("CatalogId", "QuestionId");
+                        j.ToTable("CatalogQuestions");
+                    });
         });
 
         modelBuilder.Entity<CatalogType>(entity =>
