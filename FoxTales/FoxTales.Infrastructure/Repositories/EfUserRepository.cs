@@ -238,7 +238,8 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     {
         var existingCatalog = await _db.Catalogs
             .Include(c => c.Questions)
-            .FirstOrDefaultAsync(c => c.CatalogId == catalog.CatalogId) ?? throw new NotFoundException("Catalog not found");
+            .FirstOrDefaultAsync(c => c.CatalogId == catalog.CatalogId)
+            ?? throw new NotFoundException("Catalog not found");
 
         _db.Entry(existingCatalog).CurrentValues.SetValues(catalog);
 
@@ -246,9 +247,14 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
 
         if (catalog.Questions?.Any() == true)
         {
-            foreach (var question in catalog.Questions)
+            var questionIds = catalog.Questions.Select(q => q.Id).ToList();
+
+            var existingQuestions = await _db.Questions
+                .Where(q => questionIds.Contains(q.Id))
+                .ToListAsync();
+
+            foreach (var question in existingQuestions)
             {
-                _db.Questions.Attach(question);
                 existingCatalog.Questions.Add(question);
             }
         }

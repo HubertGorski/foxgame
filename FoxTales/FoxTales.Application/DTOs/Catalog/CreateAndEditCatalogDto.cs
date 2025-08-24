@@ -1,3 +1,5 @@
+using FoxTales.Application.DTOs.User;
+
 namespace FoxTales.Application.DTOs.Catalog;
 
 public class CreateAndEditCatalogDto
@@ -13,4 +15,5 @@ public class CreateAndEditCatalogDto
 
     public List<int> AvailableTypeIds { get; set; } = [];
     public List<int> QuestionsIds { get; set; } = [];
+    public ICollection<QuestionDto> Questions { get; set; } = [];
 }
