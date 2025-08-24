@@ -13,7 +13,6 @@ public class Catalog
     public int OwnerId { get; set; }
     public virtual User Owner { get; set; } = null!;
 
-    public List<int> QuestionsIds { get; set; } = [];
     public ICollection<Question> Questions { get; set; } = [];
     public ICollection<CatalogType> AvailableTypes { get; set; } = [];
 

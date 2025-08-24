@@ -242,14 +242,15 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
 
         _db.Entry(existingCatalog).CurrentValues.SetValues(catalog);
 
-        var newQuestions = await _db.Questions
-            .Where(q => catalog.QuestionsIds.Contains(q.Id.Value))
-            .ToListAsync();
-
         existingCatalog.Questions.Clear();
-        foreach (var question in newQuestions)
+
+        if (catalog.Questions?.Any() == true)
         {
-            existingCatalog.Questions.Add(question);
+            foreach (var question in catalog.Questions)
+            {
+                _db.Questions.Attach(question);
+                existingCatalog.Questions.Add(question);
+            }
         }
 
         await _db.SaveChangesAsync();
