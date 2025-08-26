@@ -97,7 +97,7 @@ public class PsychHub : Hub
         await Clients.Group(JOIN_GAME_VIEW).SendAsync("GetPublicRooms", Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value));
     }
 
-    public async Task RefreshRoom(RoomDto room)
+    private async Task RefreshRoom(RoomDto room)
     {
         if (room.Code == null) throw new InvalidOperationException($"Code is invalid");
         await Clients.Group(room.Code).SendAsync("LoadRoom", room);
@@ -241,12 +241,19 @@ public class PsychHub : Hub
         if (!owner.VotersIdsForHisAnswer.Contains(voter.UserId))
             owner.VotersIdsForHisAnswer.Add(voter.UserId);
 
-        var index = owner.VotersAndVoteCounts.FindIndex(kv => kv.Key == voter.UserId);
+        var voterIndex = owner.VotesReceived.FindIndex(kv => kv.Key == voter.UserId);
+
+        if (voterIndex >= 0)
+            owner.VotesReceived[voterIndex] = new KeyValuePair<int, int>(voter.UserId, owner.VotesReceived[voterIndex].Value + 1);
+        else
+            owner.VotesReceived.Add(new KeyValuePair<int, int>(voter.UserId, 1));
+
+        var index = voter.VotesGiven.FindIndex(kv => kv.Key == owner.UserId);
 
         if (index >= 0)
-            owner.VotersAndVoteCounts[index] = new KeyValuePair<int, int>(voter.UserId, owner.VotersAndVoteCounts[index].Value + 1);
+            voter.VotesGiven[index] = new KeyValuePair<int, int>(owner.UserId, voter.VotesGiven[index].Value + 1);
         else
-            owner.VotersAndVoteCounts.Add(new KeyValuePair<int, int>(voter.UserId, 1));
+            voter.VotesGiven.Add(new KeyValuePair<int, int>(owner.UserId, 1));
     }
 
     public async Task SetNewRound(string gameCode)
