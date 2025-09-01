@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, CatalogTypesSeeder catalogTypesSeeder, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder, LimitThresholdSeeder limitThresholdSeeder, AvatarsSeeder avatarSeeder)
+public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, CatalogTypesSeeder catalogTypesSeeder, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder, LimitThresholdSeeder limitThresholdSeeder, AvatarsSeeder avatarSeeder, PublicQuestionsSeeder publicQuestionsSeeder)
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<DatabaseSeeder> _logger = logger;
@@ -12,8 +12,9 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
     private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
     private readonly AvatarsSeeder _avatarSeeder = avatarSeeder;
     private readonly CatalogTypesSeeder _catalogTypesSeeder = catalogTypesSeeder;
+    private readonly PublicQuestionsSeeder _publicQuestionsSeeder = publicQuestionsSeeder;
 
-    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false)
+    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false, bool clearQuestions = false)
     {
         if (!await _context.Database.CanConnectAsync())
         {
@@ -39,6 +40,7 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
         await _limitThresholdSeeder.SeedAsync();
         await _avatarSeeder.SeedAsync();
         await _catalogTypesSeeder.SeedAsync();
+        await _publicQuestionsSeeder.SeedAsync(clearQuestions);
 
         _logger.LogInformation("Database seeding completed successfully");
     }

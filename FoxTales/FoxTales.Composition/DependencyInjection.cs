@@ -88,6 +88,7 @@ public static class DependencyInjection
         services.AddTransient<FoxGamesSeeder>();
         services.AddTransient<LimitThresholdSeeder>();
         services.AddTransient<AvatarsSeeder>();
+        services.AddTransient<PublicQuestionsSeeder>();
 
         await services.SeedDatabaseAsync();
         return services;
