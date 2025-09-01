@@ -82,6 +82,9 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         ICollection<CatalogType> availableCatalogTypes = await _userRepository.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
         ICollection<CatalogTypeDto> availableCatalogTypesDto = _mapper.Map<ICollection<CatalogTypeDto>>(availableCatalogTypes);
 
+        ICollection<Question> publicQuestions = await _userRepository.GetPublicQuestions();
+        ICollection<QuestionDto> publicQuestionsDto = _mapper.Map<ICollection<QuestionDto>>(publicQuestions);
+
         return new()
         {
             User = userDto,
@@ -89,7 +92,8 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             AvailableCatalogTypes = availableCatalogTypesDto,
             FoxGames = foxGamesDto,
             Options = tokens.Options,
-            RefreshToken = tokens.RefreshToken
+            RefreshToken = tokens.RefreshToken,
+            PublicQuestions = publicQuestionsDto
         };
     }
 

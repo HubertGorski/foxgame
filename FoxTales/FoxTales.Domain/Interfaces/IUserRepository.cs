@@ -30,4 +30,5 @@ public interface IUserRepository
     Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
     Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds);
     Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds);
+    Task<ICollection<Question>> GetPublicQuestions();
 }
