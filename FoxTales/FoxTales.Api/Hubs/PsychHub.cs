@@ -106,6 +106,8 @@ public class PsychHub : Hub
     public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
+        if (room.Owner.UserId == playerId)
+            room.Questions.RemoveAll(q => q.IsPublic);
 
         room.Questions.RemoveAll(q => q.OwnerId == playerId);
         room.Questions.AddRange(questions);
