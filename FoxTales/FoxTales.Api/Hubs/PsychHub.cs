@@ -107,7 +107,10 @@ public class PsychHub : Hub
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null) return;
         if (room.Owner.UserId == playerId)
+        {
+            questions = [.. questions.Where(q => q.OwnerId == playerId || q.IsPublic)];
             room.Questions.RemoveAll(q => q.IsPublic);
+        }
 
         room.Questions.RemoveAll(q => q.OwnerId == playerId);
         room.Questions.AddRange(questions);
