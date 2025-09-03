@@ -1,6 +1,6 @@
 using System.Text;
 using FluentValidation;
-using FluentValidation.AspNetCore;
+using DotNetEnv;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Exceptions;
 using FoxTales.Application.Helpers;
@@ -74,8 +74,13 @@ public static class DependencyInjection
 
     public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
+        var connectionString = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
+        ? configuration.GetValue<string>("ConnectionStrings:DefaultConnection")
+        : Environment.GetEnvironmentVariable("ConnectionStringLocal");
+
         services.AddDbContext<FoxTalesDbContext>(options =>
-            options.UseSqlServer(configuration.GetValue<string>("ConnectionStrings:DefaultConnection")));
+            options.UseSqlServer(connectionString));
 
         services.AddScoped<IUserRepository, EfUserRepository>();
         services.AddScoped<IDylematyRepository, EfDylematyRepository>();
