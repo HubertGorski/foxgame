@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  sqlserver-foxtales:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver-foxtales
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+    networks:
+      - foxtales-network
+
+  backend-foxtales:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-foxtales
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings:DefaultConnection=${ConnectionString}
+      - ASPNETCORE_URLS=http://+:5161
+    ports:
+      - "5161:5161"
+    restart: unless-stopped
+    depends_on:
+      - sqlserver-foxtales
+    networks:
+      - foxtales-network
+
+networks:
+  foxtales-network:
+    driver: bridge

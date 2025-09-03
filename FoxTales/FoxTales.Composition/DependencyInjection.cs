@@ -75,7 +75,7 @@ public static class DependencyInjection
     public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<FoxTalesDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("Default")));
+            options.UseSqlServer(configuration.GetValue<string>("ConnectionStrings:DefaultConnection")));
 
         services.AddScoped<IUserRepository, EfUserRepository>();
         services.AddScoped<IDylematyRepository, EfDylematyRepository>();
@@ -90,8 +90,18 @@ public static class DependencyInjection
         services.AddTransient<AvatarsSeeder>();
         services.AddTransient<PublicQuestionsSeeder>();
 
+        await services.MigrateDatabaseAsync();
         await services.SeedDatabaseAsync();
         return services;
+    }
+
+    private static async Task MigrateDatabaseAsync(this IServiceCollection services)
+    {
+        using var serviceProvider = services.BuildServiceProvider();
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<FoxTalesDbContext>();
+
+        await context.Database.MigrateAsync();
     }
 
     private static async Task SeedDatabaseAsync(this IServiceCollection services)
