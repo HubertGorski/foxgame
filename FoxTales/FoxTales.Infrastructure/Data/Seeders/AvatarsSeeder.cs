@@ -28,35 +28,35 @@ public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> log
                 {
                     AvatarId = (int)AvatarName.Default,
                     Name = AvatarName.Default,
-                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Default}.png",
+                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Default}.webp",
                     IsPremium = false,
                 },
                 new()
                 {
                     AvatarId = (int)AvatarName.Crazy,
                     Name = AvatarName.Crazy,
-                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Crazy}.png",
+                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Crazy}.webp",
                     IsPremium = false,
                 },
                 new()
                 {
                     AvatarId = (int)AvatarName.Happy,
                     Name = AvatarName.Happy,
-                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Happy}.png",
+                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Happy}.webp",
                     IsPremium = true,
                 },
                 new()
                 {
                     AvatarId = (int)AvatarName.New,
                     Name = AvatarName.New,
-                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.New}.png",
+                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.New}.webp",
                     IsPremium = true,
                 },
                 new()
                 {
                     AvatarId = (int)AvatarName.Sad,
                     Name = AvatarName.Sad,
-                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Sad}.png",
+                    Source = $"/src/assets/imgs/defaultAvatars/{(int)AvatarName.Sad}.webp",
                     IsPremium = true,
                 }
             };
