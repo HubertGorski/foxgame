@@ -30,6 +30,15 @@ services:
     networks:
       - foxtales-network
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN} --url http://backend-foxtales:5161
+    depends_on:
+      - backend-foxtales
+    networks:
+      - foxtales-network
+
 networks:
   foxtales-network:
     driver: bridge

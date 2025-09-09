@@ -74,10 +74,17 @@ public static class DependencyInjection
 
     public static async Task<IServiceCollection> AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
-        var connectionString = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
-        ? configuration.GetValue<string>("ConnectionStrings:DefaultConnection")
-        : Environment.GetEnvironmentVariable("ConnectionStringLocal");
+        string connectionString = "";
+        bool isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+        if (isDocker)
+        {
+            connectionString = configuration.GetValue<string>("ConnectionStrings:DefaultConnection") ?? "";
+        }
+        else
+        {
+            Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
+            connectionString = Environment.GetEnvironmentVariable("ConnectionStringLocal") ?? "";
+        }
 
         services.AddDbContext<FoxTalesDbContext>(options =>
             options.UseSqlServer(connectionString));
