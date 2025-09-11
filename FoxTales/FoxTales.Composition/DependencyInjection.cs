@@ -19,6 +19,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using FoxTales.Application.Interfaces.Psych;
+using FoxTales.Application.Services.Psych;
+using System.Reflection;
 
 namespace FoxTales.Composition;
 
@@ -30,6 +33,8 @@ public static class DependencyInjection
         services.AddScoped<IUserLimitService, UserLimitService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<IRoomService, RoomService>();
+        services.AddScoped<IRoundService, RoundService>();
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -37,6 +42,12 @@ public static class DependencyInjection
         services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
         services.AddScoped<IValidator<LoginUserDto>, LoginUserDtoValidator>();
         services.AddScoped<IValidator<SetUsernameRequestDto>, SetUsernameRequestDtoValidator>();
+        
+        services.AddMediatR(cfg => 
+        {
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+        });
+        
         services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<DylematyCardProfile>();
