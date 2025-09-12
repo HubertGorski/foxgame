@@ -22,19 +22,26 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         return room;
     }
 
-    public async Task<string> CreateRoomGetCode(RoomDto room)
+    public async Task CreateRoom(RoomDto room)
     {
         room.Code = RoomCodeGenerator.GenerateUniqueCode(code => !Rooms.ContainsKey(code));
         await RemoveAllRoomsByOwnerId(room.Owner.UserId);
         room.Owner.IsReady = false;
         room.Users.Add(room.Owner);
         Rooms.Add(room.Code, room);
-        return room.Code;
+
+        string connectionId = GetPlayerConnectionId(room.Owner);
+        await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
+        await _mediator.Publish(new RefreshRoomEvent(room));
     }
 
     public async Task EditRoom(RoomDto room)
     {
-        if (room.Code == null) return;
+        if (room.Code == null)
+            throw new InvalidOperationException($"Code '{room.Code}' is invalid (Edit Room)");
+
+        if (room.Users.Count == 0)
+            throw new InvalidOperationException("Room is empty! (Edit Room)");
 
         Rooms[room.Code] = room;
         await RefreshPublicRoomsList();
@@ -70,7 +77,6 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         RoomDto room = GetRoomByCode(gameCode);
         PlayerDto playerToRemove = room.Users.FirstOrDefault(p => p.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room '{gameCode}' (LeaveRoom)");
         room.Users.Remove(playerToRemove);
-
         await _mediator.Publish(new PlayerLeftRoomEvent(gameCode, playerToRemove));
 
         if (room.Users.Count == 0 || room.Owner.UserId == playerId)
@@ -96,22 +102,23 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
 
-    public async Task JoinRoom(string gameCode, PlayerDto player, string? password, int? ownerId)
+    public async Task JoinRoom(PlayerDto player, string? gameCode, string? password, int? ownerId)
     {
         string connectionId = GetPlayerConnectionId(player);
         if (FindPlayerByUserId(player.UserId) != null)
-        {
             throw new InvalidOperationException($"Player {player.UserId} exist in this or another room! (JoinRoom)");
-        }
 
-        await VerifyRoomAccess(gameCode, connectionId, password, ownerId);
-        RoomDto room = GetRoomByCode(gameCode);
+        RoomDto? room = await VerifyRoomAccessGetRoom(connectionId, gameCode, password, ownerId);
+        if (room == null) return;
 
         await RemoveAllRoomsByOwnerId(player.UserId);
         player.IsReady = false;
         room.Users.Add(player);
 
-        await _mediator.Publish(new JoinRoomEvent(connectionId, gameCode));
+        if (room.Code == null)
+            throw new InvalidOperationException($"Code doesnt exist! (JoinRoom)");
+
+        await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
         await _mediator.Publish(new RefreshRoomEvent(room));
         await RefreshPublicRoomsList();
     }
@@ -147,7 +154,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         return player.ConnectionId ?? throw new InvalidOperationException($"Player {player.UserId} doesnt have 'ConnectionId' (GetPlayerConnectionId)");
     }
 
-    private async Task VerifyRoomAccess(string gameCode, string connectionId, string? password, int? ownerId)
+    private async Task<RoomDto?> VerifyRoomAccessGetRoom(string connectionId, string? gameCode, string? password, int? ownerId)
     {
         RoomDto? selectedRoom = ownerId != null
         ? Rooms.Values.FirstOrDefault(r => (r.Owner.UserId == ownerId) && (r.Password == password || r.Password == null))
@@ -159,6 +166,8 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
             string message = ownerId != null ? DictHelper.Validation.InvalidPassword : DictHelper.Validation.RoomDoesntExist;
             await _mediator.Publish(new ReceiveErrorEvent(connectionId, message, fieldId));
         }
+
+        return selectedRoom;
     }
 
 }

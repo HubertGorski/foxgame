@@ -6,12 +6,12 @@ namespace FoxTales.Application.Interfaces.Psych;
 public interface IRoomService
 {
     RoomDto GetRoomByCode(string gameCode);
-    Task<string> CreateRoomGetCode(RoomDto room);
+    Task CreateRoom(RoomDto room);
     Task EditRoom(RoomDto room);
     Task SetStatus(string gameCode, int playerId, bool status);
     Task StartGame(string gameCode, string connectionId);
     Task RefreshPublicRoomsList();
     Task LeaveRoom(string gameCode, int playerId);
     Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions);
-    Task JoinRoom(string gameCode, PlayerDto player, string? password, int? ownerId);
+    Task JoinRoom(PlayerDto player, string? gameCode, string? password, int? ownerId);
 }

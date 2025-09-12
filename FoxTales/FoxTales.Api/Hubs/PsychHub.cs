@@ -30,8 +30,8 @@ public class PsychHub(IRoomService roomService, IRoundService roundService) : Hu
 
     public async Task CreateRoom(RoomDto room)
     {
-        string gameCode = await _roomService.CreateRoomGetCode(room);
-        await Clients.Client(Context.ConnectionId).SendAsync("GetGameCode", gameCode);
+        room.Owner.ConnectionId = Context.ConnectionId;
+        await _roomService.CreateRoom(room);
     }
 
     public async Task EditRoom(RoomDto room)
@@ -92,7 +92,7 @@ public class PsychHub(IRoomService roomService, IRoundService roundService) : Hu
     public async Task JoinRoom(string gameCode, PlayerDto player, string? password, int? ownerId)
     {
         player.ConnectionId = Context.ConnectionId;
-        await _roomService.JoinRoom(gameCode, player, password, ownerId);
+        await _roomService.JoinRoom(player, gameCode, password, ownerId);
     }
 
     private static (string? Room, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)

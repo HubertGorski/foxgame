@@ -21,7 +21,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
-using System.Reflection;
 
 namespace FoxTales.Composition;
 
@@ -42,12 +41,6 @@ public static class DependencyInjection
         services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
         services.AddScoped<IValidator<LoginUserDto>, LoginUserDtoValidator>();
         services.AddScoped<IValidator<SetUsernameRequestDto>, SetUsernameRequestDtoValidator>();
-        
-        services.AddMediatR(cfg => 
-        {
-            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-        });
-        
         services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile<DylematyCardProfile>();
