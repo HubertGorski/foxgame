@@ -18,6 +18,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     internal static void ClearRoomsForTest() => Rooms.Clear();
     internal static void AddRoomForTest(RoomDto room)
         => Rooms[string.IsNullOrWhiteSpace(room.Code) ? throw new InvalidOperationException("Room code cannot be null or empty") : room.Code] = room;
+    internal static ConcurrentDictionary<string, RoomDto> GetRoomsForTest() => Rooms;
 
     public RoomDto GetRoomByCode(string gameCode)
     {
