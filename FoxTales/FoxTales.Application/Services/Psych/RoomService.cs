@@ -5,6 +5,7 @@ using FoxTales.Application.Interfaces.Psych;
 using MediatR;
 using FoxTales.Application.Events;
 using FoxTales.Application.DTOs.User;
+using System.Collections.Concurrent;
 
 namespace FoxTales.Application.Services.Psych;
 
@@ -12,7 +13,11 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 {
     private readonly IRoundService _roundService = roundService;
     private readonly IMediator _mediator = mediator;
-    private static readonly Dictionary<GameCode, RoomDto> Rooms = [];
+    private static readonly ConcurrentDictionary<string, RoomDto> Rooms = new();
+
+    internal static void ClearRoomsForTest() => Rooms.Clear();
+    internal static void AddRoomForTest(RoomDto room)
+        => Rooms[string.IsNullOrWhiteSpace(room.Code) ? throw new InvalidOperationException("Room code cannot be null or empty") : room.Code] = room;
 
     public RoomDto GetRoomByCode(string gameCode)
     {
@@ -28,7 +33,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         await RemoveAllRoomsByOwnerId(room.Owner.UserId);
         room.Owner.IsReady = false;
         room.Users.Add(room.Owner);
-        Rooms.Add(room.Code, room);
+        Rooms.TryAdd(room.Code, room);
 
         string connectionId = GetPlayerConnectionId(room.Owner);
         await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
@@ -136,7 +141,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     private async Task RemoveRoom(string gameCode)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        Rooms.Remove(gameCode);
+        Rooms.TryRemove(gameCode, out var _);
         await RefreshPublicRoomsList();
         await _mediator.Publish(new RoomClosedEvent(gameCode, [.. room.Users]));
     }

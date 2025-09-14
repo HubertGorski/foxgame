@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Domain", "FoxTales
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Composition", "FoxTales\FoxTales.Composition\FoxTales.Composition.csproj", "{587B3983-C272-479B-988C-E05E6BAC3ED6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FoxTales.Tests", "FoxTales.Tests", "{52A98F38-0E69-8B25-14FF-A6867BBC14C3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoxTales.Application.Tests", "FoxTales.Tests\FoxTales.Application.Tests\FoxTales.Application.Tests.csproj", "{81C1AC76-FB17-4D08-A312-8DA02CCB7C48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,10 @@ Global
 		{587B3983-C272-479B-988C-E05E6BAC3ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{587B3983-C272-479B-988C-E05E6BAC3ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{587B3983-C272-479B-988C-E05E6BAC3ED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81C1AC76-FB17-4D08-A312-8DA02CCB7C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81C1AC76-FB17-4D08-A312-8DA02CCB7C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81C1AC76-FB17-4D08-A312-8DA02CCB7C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81C1AC76-FB17-4D08-A312-8DA02CCB7C48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,5 +59,6 @@ Global
 		{62F44C87-D8AD-4180-98B3-30686D6F3978} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
 		{09BD20FE-1454-48EB-BD0E-7B609F0D56D6} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
 		{587B3983-C272-479B-988C-E05E6BAC3ED6} = {76877A79-B811-FD64-C14A-FA255DFD26FA}
+		{81C1AC76-FB17-4D08-A312-8DA02CCB7C48} = {52A98F38-0E69-8B25-14FF-A6867BBC14C3}
 	EndGlobalSection
 EndGlobal

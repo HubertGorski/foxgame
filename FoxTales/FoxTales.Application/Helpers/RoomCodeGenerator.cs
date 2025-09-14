@@ -22,7 +22,7 @@ public static class RoomCodeGenerator
 
             if (attempts >= maxAttempts)
             {
-                throw new InvalidOperationException("Nie można wygenerować unikalnego kodu");
+                throw new InvalidOperationException("Could not generate a unique code.");
             }
 
         } while (!isCodeUnique(code));
