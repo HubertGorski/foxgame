@@ -33,7 +33,6 @@ public class RoomServiceTests
             {
                 AvatarId = 1,
                 Name = AvatarName.Default,
-                Source = "default.png",
                 IsPremium = false
             }
         };

@@ -152,7 +152,6 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.HasKey(u => u.AvatarId);
             entity.Property(u => u.AvatarId).ValueGeneratedNever();
             entity.Property(u => u.IsPremium).IsRequired();
-            entity.Property(u => u.Source).IsRequired();
             entity.Property(u => u.Name).IsRequired().HasMaxLength(32).HasConversion<string>();
         });
 
