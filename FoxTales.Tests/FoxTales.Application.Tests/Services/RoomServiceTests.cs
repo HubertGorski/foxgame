@@ -284,4 +284,57 @@ public class RoomServiceTests
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Never);
     }
 
+    [Fact]
+    public async Task SetStatus_ShouldThrow_WhenUserDoesntExist()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.SetStatus(GameCode, UserId, true));
+
+        // Then
+        Assert.Contains($"Player {UserId} not found in room {GameCode}", ex.Message);
+    }
+
+    [Fact]
+    public async Task SetStatus_ShouldThrow_WhenRoomDoesntExist()
+    {
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.SetStatus(GameCode, OwnerId, true));
+
+        // Then
+        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task SetStatus_ShouldSetReady()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.SetStatus(GameCode, OwnerId, true);
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room.Users.All(u => u.IsReady)), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetStatus_ShouldSetNotReady()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.SetStatus(GameCode, OwnerId, false);
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room.Users.All(u => !u.IsReady)), default), Times.Once);
+    }
 }
