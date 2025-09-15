@@ -192,4 +192,96 @@ public class RoomServiceTests
         Assert.Contains("doesnt have 'ConnectionId'", ex.Message);
     }
 
+    [Fact]
+    public async Task EditRoom_ShouldThrow_WhenCodeIsNull()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(null, OwnerId, OwnerName, OwnerConnectionId);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.EditRoom(room));
+
+        // Then
+        Assert.Contains($"Code '' is invalid (Edit Room)", ex.Message);
+    }
+
+    [Fact]
+    public async Task EditRoom_ShouldThrow_WhenRoomIsEmpty()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId, []);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.EditRoom(room));
+
+        // Then
+        Assert.Contains("Room is empty! (Edit Room)", ex.Message);
+    }
+
+    [Fact]
+    public async Task EditRoom_ShouldThrow_WhenRoomDoesntExist()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.EditRoom(room));
+
+        // Then
+        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task EditRoom_ShouldPublishJoinAndRefreshEvents_WhenRoomIsPublic()
+    {
+        // Given
+        string passwordTest = "test123";
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        updatedRoom.Password = passwordTest;
+        updatedRoom.IsPublic = true;
+
+        // When
+        await _service.EditRoom(updatedRoom);
+
+        // Then
+        var currentRoom = RoomService.GetRoomsForTest().First();
+        Assert.NotNull(currentRoom.Value.Password);
+        Assert.Contains(currentRoom.Value.Password, passwordTest);
+
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshPublicRoomsListEvent>(e => e.PublicRooms.Contains(updatedRoom)), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == updatedRoom), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Never);
+
+    }
+
+    [Fact]
+    public async Task EditRoom_ShouldPublishJoinAndRefreshEvents_WhenRoomIsNotPublic()
+    {
+        // Given
+        string passwordTest = "test123";
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        updatedRoom.Password = passwordTest;
+
+        // When
+        await _service.EditRoom(updatedRoom);
+
+        // Then
+        var currentRoom = RoomService.GetRoomsForTest().First();
+        Assert.NotNull(currentRoom.Value.Password);
+        Assert.Contains(currentRoom.Value.Password, passwordTest);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == updatedRoom), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Never);
+    }
+
 }

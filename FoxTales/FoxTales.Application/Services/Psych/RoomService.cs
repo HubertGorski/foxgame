@@ -51,8 +51,12 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         if (room.Users.Count == 0)
             throw new InvalidOperationException("Room is empty! (Edit Room)");
 
+        var _ = GetRoomByCode(room.Code);
         Rooms[room.Code] = room;
-        await RefreshPublicRoomsList();
+
+        if (room.IsPublic)
+            await RefreshPublicRoomsList();
+
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
     public async Task SetStatus(string gameCode, int playerId, bool status)
