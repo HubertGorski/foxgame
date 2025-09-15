@@ -60,6 +60,26 @@ public class RoomServiceTests
         };
     }
 
+    private static List<QuestionDto> CreateTestQuestions()
+    {
+        return
+        [
+            new() {
+                Text = "Example question",
+                Language = Language.EN
+            },
+            new() {
+                Text = "Example question 2",
+                Language = Language.EN
+            },
+            new() {
+                Text = "Example question 3",
+                Language = Language.EN,
+                IsPublic = true
+            },
+        ];
+    }
+
     [Fact]
     public void GetRoomByCode_ShouldReturnRoom_WhenCodeExists()
     {
@@ -296,7 +316,7 @@ public class RoomServiceTests
             await _service.SetStatus(GameCode, UserId, true));
 
         // Then
-        Assert.Contains($"Player {UserId} not found in room {GameCode}", ex.Message);
+        Assert.Contains($"Player {UserId} not found in room {GameCode} (SetStatus)", ex.Message);
     }
 
     [Fact]
@@ -336,5 +356,184 @@ public class RoomServiceTests
 
         // Then
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room.Users.All(u => !u.IsReady)), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartGame_ShouldThrow_WhenRoomDoesntExist()
+    {
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.StartGame(GameCode, OwnerConnectionId));
+
+        // Then
+        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task StartGame_ShouldThrow_WhenQuestionsDoesntExist()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.StartGame(GameCode, OwnerConnectionId));
+
+        // Then
+        Assert.Contains($"Room '{GameCode}' doesnt have any questions! (StartGame)", ex.Message);
+    }
+
+    [Fact]
+    public async Task StartGame_ShouldSetNewRound_WhenGameStarts()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Questions = CreateTestQuestions();
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.StartGame(GameCode, OwnerConnectionId);
+
+        // Then
+        _roundServiceMock.Verify(m => m.SetNewRound(room, OwnerConnectionId), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartGame_ShouldRefreshPublicList_WhenGameStarts()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Questions = CreateTestQuestions();
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.StartGame(GameCode, OwnerConnectionId);
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task StartGame_ShouldBeMarkedAsStarted_WhenGameStarts()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Questions = CreateTestQuestions();
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.StartGame(GameCode, OwnerConnectionId);
+
+        // Then
+        Assert.True(room.IsGameStarted);
+    }
+
+    [Fact]
+    public async Task RefreshPublicRoomsList_ShouldRefreshPublicList_WhenPublicRoomExists()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.IsPublic = true;
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.RefreshPublicRoomsList();
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshPublicRoomsListEvent>(e => e.PublicRooms.Contains(room)), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task RefreshPublicRoomsList_ShouldRefreshPublicList_WhenPublicRoomDoenstExists()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.RefreshPublicRoomsList();
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshPublicRoomsListEvent>(e => !e.PublicRooms.Contains(room)), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task LeaveRoom_ShouldThrow_WhenRoomDoesntExist()
+    {
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.LeaveRoom(GameCode, OwnerId));
+
+        // Then
+        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task LeaveRoom_ShouldThrow_WhenPlayerToRemoveDoesntExist()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.LeaveRoom(GameCode, UserId));
+
+        // Then
+        Assert.Contains($"Player {UserId} not found in room '{GameCode}' (LeaveRoom)", ex.Message);
+    }
+
+    [Fact]
+    public async Task LeaveRoom_ShouldCloseRoom_WhenOwnerLeaves()
+    {
+        // Given
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        RoomDto room = new()
+        {
+            Owner = owner,
+            Users = [owner, user],
+            Code = GameCode
+        };
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.LeaveRoom(GameCode, OwnerId);
+
+        // Then
+        Assert.False(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == owner), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == user), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RoomClosedEvent>(e => e.PlayersInRoom.Contains(user)), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RoomClosedEvent>(e => e.PlayersInRoom.Contains(owner)), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task LeaveRoom_ShouldNotCloseRoomAndReducePlayerList_WhenPlayerLeaves()
+    {
+        // Given
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        RoomDto room = new()
+        {
+            Owner = owner,
+            Users = [owner, user],
+            Code = GameCode
+        };
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.LeaveRoom(GameCode, UserId);
+
+        // Then
+        Assert.True(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == owner), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == user), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Once);
     }
 }

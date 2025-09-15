@@ -62,7 +62,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     public async Task SetStatus(string gameCode, int playerId, bool status)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        PlayerDto user = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode}");
+        PlayerDto user = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode} (SetStatus)");
         user.IsReady = status;
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
@@ -70,7 +70,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     public async Task StartGame(string gameCode, string connectionId)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        if (room.Questions.Count == 0) return;
+        if (room.Questions.Count == 0) throw new InvalidOperationException($"Room '{gameCode}' doesnt have any questions! (StartGame)");
 
         room.IsGameStarted = true;
 
