@@ -23,7 +23,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     public RoomDto GetRoomByCode(string gameCode)
     {
         if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
-            throw new InvalidOperationException($"Code '{gameCode}' doesnt exist");
+            throw new InvalidOperationException($"Code '{gameCode}' does not exist");
 
         return room;
     }
@@ -70,7 +70,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     public async Task StartGame(string gameCode, string connectionId)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        if (room.Questions.Count == 0) throw new InvalidOperationException($"Room '{gameCode}' doesnt have any questions! (StartGame)");
+        if (room.Questions.Count == 0) throw new InvalidOperationException($"Room '{gameCode}' does not have any questions! (StartGame)");
 
         room.IsGameStarted = true;
 
@@ -109,6 +109,11 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
             room.Questions.RemoveAll(q => q.IsPublic);
         }
 
+        if (room.Owner.UserId != playerId)
+        {
+            questions = [.. questions.Where(q => q.OwnerId == playerId)];
+        }
+
         room.Questions.RemoveAll(q => q.OwnerId == playerId);
         room.Questions.AddRange(questions);
         await _mediator.Publish(new RefreshRoomEvent(room));
@@ -127,7 +132,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         room.Users.Add(player);
 
         if (room.Code == null)
-            throw new InvalidOperationException($"Code doesnt exist! (JoinRoom)");
+            throw new InvalidOperationException($"Code does not exist! (JoinRoom)");
 
         await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
         await _mediator.Publish(new RefreshRoomEvent(room));
@@ -175,7 +180,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 
     private static string GetPlayerConnectionId(PlayerDto player)
     {
-        return player.ConnectionId ?? throw new InvalidOperationException($"Player {player.UserId} doesnt have 'ConnectionId' (GetPlayerConnectionId)");
+        return player.ConnectionId ?? throw new InvalidOperationException($"Player {player.UserId} does not have 'ConnectionId' (GetPlayerConnectionId)");
     }
 
     private async Task<RoomDto?> VerifyRoomAccessGetRoom(string connectionId, string? gameCode, string? password, int? ownerId)

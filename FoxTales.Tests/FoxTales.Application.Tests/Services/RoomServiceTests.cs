@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
@@ -23,6 +24,17 @@ public class RoomServiceTests
     private const string UserName = "Hubi";
     private const string UserConnectionId = "2";
     private const int UserId = 2;
+
+    private static readonly ReadOnlyDictionary<string, QuestionDto> Library = new(new Dictionary<string, QuestionDto>
+    {
+        { "ownerQuestion", new() { Text = "Example owner question", Language = Language.EN, OwnerId = OwnerId } },
+        { "ownerQuestion_2", new() { Text = "Example owner question 2", Language = Language.EN, OwnerId = OwnerId } },
+        { "userQuestion", new() { Text = "Example user question", Language = Language.EN, OwnerId = UserId } },
+        { "userQuestion_2", new() { Text = "Example user question 2", Language = Language.EN, OwnerId = UserId } },
+        { "publicQuestion", new() { Text = "Example public question", Language = Language.EN, IsPublic = true } },
+        { "publicQuestion_2", new() { Text = "Example public question 2", Language = Language.EN, IsPublic = true } }
+    });
+
 
     public RoomServiceTests()
     {
@@ -60,26 +72,6 @@ public class RoomServiceTests
         };
     }
 
-    private static List<QuestionDto> CreateTestQuestions()
-    {
-        return
-        [
-            new() {
-                Text = "Example question",
-                Language = Language.EN
-            },
-            new() {
-                Text = "Example question 2",
-                Language = Language.EN
-            },
-            new() {
-                Text = "Example question 3",
-                Language = Language.EN,
-                IsPublic = true
-            },
-        ];
-    }
-
     [Fact]
     public void GetRoomByCode_ShouldReturnRoom_WhenCodeExists()
     {
@@ -104,7 +96,7 @@ public class RoomServiceTests
             _service.GetRoomByCode(GameCode));
 
         // Then
-        Assert.Equal($"Code '{GameCode}' doesnt exist", ex.Message);
+        Assert.Equal($"Code '{GameCode}' does not exist", ex.Message);
     }
 
     [Fact]
@@ -209,7 +201,7 @@ public class RoomServiceTests
             await _service.CreateRoom(room));
 
         // Then
-        Assert.Contains("doesnt have 'ConnectionId'", ex.Message);
+        Assert.Contains("does not have 'ConnectionId'", ex.Message);
     }
 
     [Fact]
@@ -241,7 +233,7 @@ public class RoomServiceTests
     }
 
     [Fact]
-    public async Task EditRoom_ShouldThrow_WhenRoomDoesntExist()
+    public async Task EditRoom_ShouldThrow_WhenRoomDoesNotExist()
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
@@ -251,7 +243,7 @@ public class RoomServiceTests
             await _service.EditRoom(room));
 
         // Then
-        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+        Assert.Contains($"Code '{GameCode}' does not exist", ex.Message);
     }
 
     [Fact]
@@ -305,7 +297,7 @@ public class RoomServiceTests
     }
 
     [Fact]
-    public async Task SetStatus_ShouldThrow_WhenUserDoesntExist()
+    public async Task SetStatus_ShouldThrow_WhenUserDoesNotExist()
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
@@ -320,14 +312,14 @@ public class RoomServiceTests
     }
 
     [Fact]
-    public async Task SetStatus_ShouldThrow_WhenRoomDoesntExist()
+    public async Task SetStatus_ShouldThrow_WhenRoomDoesNotExist()
     {
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _service.SetStatus(GameCode, OwnerId, true));
 
         // Then
-        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+        Assert.Contains($"Code '{GameCode}' does not exist", ex.Message);
     }
 
     [Fact]
@@ -358,38 +350,32 @@ public class RoomServiceTests
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room.Users.All(u => !u.IsReady)), default), Times.Once);
     }
 
-    [Fact]
-    public async Task StartGame_ShouldThrow_WhenRoomDoesntExist()
-    {
-        // When
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await _service.StartGame(GameCode, OwnerConnectionId));
-
-        // Then
-        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
-    }
-
-    [Fact]
-    public async Task StartGame_ShouldThrow_WhenQuestionsDoesntExist()
+    [Theory]
+    [InlineData(false, "Code '{0}' does not exist")]
+    [InlineData(true, "Room '{0}' does not have any questions! (StartGame)")]
+    public async Task StartGame_ShouldThrow_WhenInvalidRoom(bool addRoom, string expectedMessage)
     {
         // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        if (addRoom)
+        {
+            RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+            RoomService.AddRoomForTest(room);
+        }
 
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _service.StartGame(GameCode, OwnerConnectionId));
 
         // Then
-        Assert.Contains($"Room '{GameCode}' doesnt have any questions! (StartGame)", ex.Message);
+        Assert.Contains(string.Format(expectedMessage, GameCode), ex.Message);
     }
 
     [Fact]
-    public async Task StartGame_ShouldSetNewRound_WhenGameStarts()
+    public async Task StartGame_ShouldInitializeGameProperly()
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        room.Questions = CreateTestQuestions();
+        room.Questions = [Library["ownerQuestion"]];
         RoomService.AddRoomForTest(room);
 
         // When
@@ -397,37 +383,10 @@ public class RoomServiceTests
 
         // Then
         _roundServiceMock.Verify(m => m.SetNewRound(room, OwnerConnectionId), Times.Once);
-    }
-
-    [Fact]
-    public async Task StartGame_ShouldRefreshPublicList_WhenGameStarts()
-    {
-        // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        room.Questions = CreateTestQuestions();
-        RoomService.AddRoomForTest(room);
-
-        // When
-        await _service.StartGame(GameCode, OwnerConnectionId);
-
-        // Then
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Once);
-    }
-
-    [Fact]
-    public async Task StartGame_ShouldBeMarkedAsStarted_WhenGameStarts()
-    {
-        // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        room.Questions = CreateTestQuestions();
-        RoomService.AddRoomForTest(room);
-
-        // When
-        await _service.StartGame(GameCode, OwnerConnectionId);
-
-        // Then
         Assert.True(room.IsGameStarted);
     }
+
 
     [Fact]
     public async Task RefreshPublicRoomsList_ShouldRefreshPublicList_WhenPublicRoomExists()
@@ -459,18 +418,18 @@ public class RoomServiceTests
     }
 
     [Fact]
-    public async Task LeaveRoom_ShouldThrow_WhenRoomDoesntExist()
+    public async Task LeaveRoom_ShouldThrow_WhenRoomDoesNotExist()
     {
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _service.LeaveRoom(GameCode, OwnerId));
 
         // Then
-        Assert.Contains($"Code '{GameCode}' doesnt exist", ex.Message);
+        Assert.Contains($"Code '{GameCode}' does not exist", ex.Message);
     }
 
     [Fact]
-    public async Task LeaveRoom_ShouldThrow_WhenPlayerToRemoveDoesntExist()
+    public async Task LeaveRoom_ShouldThrow_WhenPlayerToRemoveDoesNotExist()
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
@@ -535,5 +494,116 @@ public class RoomServiceTests
         _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == user), default), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshPublicRoomsListEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldThrow_WhenRoomDoesNotExist()
+    {
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.AddQuestionsToGame(GameCode, OwnerId, []));
+
+        // Then
+        Assert.Contains($"Code '{GameCode}' does not exist", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldAddNewOwnerQuestion_WhenOwnerAddsTwoQuestionsOneAlreadyExists_OtherQuestionsUnaffected()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["ownerQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["ownerQuestion_2"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldRemoveOneOwnerQuestion_WhenOwnerRemovesOneOfTwo_OtherQuestionsUnaffected()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"], Library["publicQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldRemovePublicQuestions_WhenOwnerRemovesPublicQuestions()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldAddPublicQuestions_WhenOwnerAddsPublicQuestions()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldNotAddPublicQuestions_WhenUserAddsPublicQuestions()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["userQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldUpdateUserQuestion_WhenUserChangesTheirOwnQuestion()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["userQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldAddNextUserQuestion_WhenUserAddsAnotherQuestion()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldRemoveAllUserQuestions_WhenUserDeletesAllTheirQuestions_OtherQuestionsUnaffected()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> newQuestions = [];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldNotAddQuestions_WhenUserIsNotOwnerOfThem()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+    }
+
+    private async Task RunAddQuestionsTest(List<QuestionDto> oldQuestions, List<QuestionDto> newQuestions, List<QuestionDto> expectedQuestions, int playerId)
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Questions = oldQuestions;
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.AddQuestionsToGame(GameCode, playerId, newQuestions);
+
+        // Then
+        List<QuestionDto> currentQuestions = RoomService.GetRoomsForTest().Values.First().Questions;
+
+        Assert.Equal(expectedQuestions.Count, currentQuestions.Count);
+        Assert.All(expectedQuestions, q => Assert.Contains(q, currentQuestions));
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
     }
 }
