@@ -19,6 +19,10 @@ public class RoomServiceTests
     private const string AnotherGameCode = "MIASTO69";
     private const string OwnerName = "Natka";
     private const string OwnerConnectionId = "1";
+    private const int OwnerId = 1;
+    private const string UserName = "Hubi";
+    private const string UserConnectionId = "2";
+    private const int UserId = 2;
 
     public RoomServiceTests()
     {
@@ -29,10 +33,11 @@ public class RoomServiceTests
         _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object);
     }
 
-    private static PlayerDto CreateTestPlayer(string username, string? connectionId)
+    private static PlayerDto CreateTestPlayer(int userId, string username, string? connectionId)
     {
         return new PlayerDto
         {
+            UserId = userId,
             Username = username,
             ConnectionId = connectionId,
             Avatar = new AvatarDto
@@ -44,14 +49,14 @@ public class RoomServiceTests
         };
     }
 
-    private static RoomDto CreateTestRoom(string code, string ownerName, string? ownerConnectionId)
+    private static RoomDto CreateTestRoom(string? code, int ownerId, string ownerName, string? ownerConnectionId, List<PlayerDto>? users = null)
     {
-        PlayerDto owner = CreateTestPlayer(ownerName, ownerConnectionId);
+        PlayerDto owner = CreateTestPlayer(ownerId, ownerName, ownerConnectionId);
         return new RoomDto
         {
             Code = code,
             Owner = owner,
-            Users = [owner]
+            Users = users ?? [owner]
         };
     }
 
@@ -59,7 +64,7 @@ public class RoomServiceTests
     public void GetRoomByCode_ShouldReturnRoom_WhenCodeExists()
     {
         // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerName, OwnerConnectionId);
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         RoomService.AddRoomForTest(room);
 
         // When
@@ -86,7 +91,7 @@ public class RoomServiceTests
     public async Task CreateRoom_ShouldGenerateCodeAndAddRoom()
     {
         // Given
-        PlayerDto owner = CreateTestPlayer(OwnerName, OwnerConnectionId);
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
 
         owner.IsReady = true;
         RoomDto room = new()
@@ -109,44 +114,75 @@ public class RoomServiceTests
     public async Task CreateRoom_ShouldRemovePreviousRoomsOfOwner()
     {
         // Given
-        RoomDto oldRoom = CreateTestRoom(GameCode, OwnerName, OwnerConnectionId);
+        RoomDto oldRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         RoomService.AddRoomForTest(oldRoom);
         ICollection<string> oldRooms = RoomService.GetRoomsForTest().Keys;
 
-        RoomDto newRoom = CreateTestRoom(AnotherGameCode, OwnerName, OwnerConnectionId);
+        RoomDto newRoom = CreateTestRoom(null, OwnerId, OwnerName, OwnerConnectionId);
 
         // When
         await _service.CreateRoom(newRoom);
 
         // Then
         ICollection<string> currentRooms = RoomService.GetRoomsForTest().Keys;
+        Assert.NotNull(newRoom.Code);
 
         Assert.Contains(oldRoom.Code, oldRooms);
         Assert.DoesNotContain(oldRoom.Code, currentRooms);
 
         Assert.DoesNotContain(newRoom.Code, oldRooms);
         Assert.Contains(newRoom.Code, currentRooms);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRoom_ShouldRemoveUserFromAllOtherRooms()
+    {
+        // Given
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        RoomDto oldRoom = new()
+        {
+            Owner = owner,
+            Users = [owner, user],
+            Code = GameCode
+        };
+        RoomService.AddRoomForTest(oldRoom);
+
+        RoomDto newRoom = CreateTestRoom(null, UserId, UserName, UserConnectionId, []);
+
+        // When
+        await _service.CreateRoom(newRoom);
+
+        // Then
+        Assert.DoesNotContain(oldRoom.Users, u => u.UserId == user.UserId);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == oldRoom), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == newRoom), default), Times.Once);
     }
 
     [Fact]
     public async Task CreateRoom_ShouldPublishJoinAndRefreshEvents()
     {
         // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerName, OwnerConnectionId);
+        RoomDto room = CreateTestRoom(null, OwnerId, OwnerName, OwnerConnectionId);
 
         // When
         await _service.CreateRoom(room);
 
         // Then
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<JoinRoomEvent>(), default), Times.Once);
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == OwnerConnectionId && e.Code == room.Code), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
     }
 
     [Fact]
     public async Task CreateRoom_ShouldThrow_WhenConnectionIdIsNull()
     {
         // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerName, null);
+        RoomDto room = CreateTestRoom(null, OwnerId, OwnerName, null);
 
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
