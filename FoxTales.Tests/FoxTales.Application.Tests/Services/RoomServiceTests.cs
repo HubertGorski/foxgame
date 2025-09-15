@@ -24,6 +24,9 @@ public class RoomServiceTests
     private const string UserName = "Hubi";
     private const string UserConnectionId = "2";
     private const int UserId = 2;
+    private const string UserName_2 = "Adam";
+    private const string UserConnectionId_2 = "3";
+    private const int UserId_2 = 3;
 
     private static readonly ReadOnlyDictionary<string, QuestionDto> Library = new(new Dictionary<string, QuestionDto>
     {
@@ -605,5 +608,224 @@ public class RoomServiceTests
         Assert.All(expectedQuestions, q => Assert.Contains(q, currentQuestions));
 
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldThrow_WhenConnectionIdIsNull()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, null);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.JoinRoom(user, GameCode, null, null));
+
+        // Then
+        Assert.Contains("does not have 'ConnectionId'", ex.Message);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldCloseOldRoom_WhenOwnerAlreadyHasRoom()
+    {
+        // Given
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        owner.IsReady = true;
+
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        RoomDto anotherRoom = CreateTestRoom(AnotherGameCode, UserId, UserName, UserConnectionId);
+        RoomService.AddRoomForTest(anotherRoom);
+
+        // When
+        await _service.JoinRoom(owner, AnotherGameCode, null, null);
+
+        // Then
+        Assert.False(owner.IsReady);
+        Assert.Contains(owner, anotherRoom.Users);
+        Assert.DoesNotContain(owner, room.Users);
+        Assert.NotNull(room.Code);
+        Assert.NotNull(anotherRoom.Code);
+        Assert.False(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        Assert.True(RoomService.GetRoomsForTest().ContainsKey(anotherRoom.Code));
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == OwnerConnectionId && e.Code == AnotherGameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == anotherRoom), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldSwitchRooms_WhenUserInAnotherRoom()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+
+        user_2.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        RoomDto anotherRoom = CreateTestRoom(AnotherGameCode, UserId, UserName, UserConnectionId, [user_2, user]);
+        RoomService.AddRoomForTest(anotherRoom);
+
+        // When
+        await _service.JoinRoom(user_2, GameCode, null, null);
+
+        // Then
+        Assert.False(user_2.IsReady);
+        Assert.Contains(user_2, room.Users);
+        Assert.DoesNotContain(user_2, anotherRoom.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == UserConnectionId_2 && e.Code == GameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == anotherRoom), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldJoin_WhenUserProvidesCorrectCode()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, GameCode, null, null);
+
+        // Then
+        Assert.False(user.IsReady);
+        Assert.Contains(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == UserConnectionId && e.Code == GameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldNotJoin_WhenUserProvidesWrongCode()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, AnotherGameCode, null, null);
+
+        // Then
+        Assert.DoesNotContain(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<JoinRoomEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldNotJoin_WhenUserOmitsCode()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, null, null);
+
+        // Then
+        Assert.DoesNotContain(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<JoinRoomEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldNotJoin_WhenUserSelectsRoomWithWrongPassword()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Password = "OK PASS";
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, "NOK PASS", OwnerId);
+
+        // Then
+        Assert.DoesNotContain(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<JoinRoomEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldJoin_WhenUserSelectsRoomWithCorrectPassword()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Password = "OK PASS";
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, "OK PASS", OwnerId);
+
+        // Then
+        Assert.False(user.IsReady);
+        Assert.Contains(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == UserConnectionId && e.Code == GameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldJoin_WhenUserSelectsRoomWithoutPassword()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, null, OwnerId);
+
+        // Then
+        Assert.False(user.IsReady);
+        Assert.Contains(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == UserConnectionId && e.Code == GameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldJoin_WhenUserSelectsRoomWithoutPasswordAndEntersAnything()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, "OK PASS", OwnerId);
+
+        // Then
+        Assert.False(user.IsReady);
+        Assert.Contains(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == UserConnectionId && e.Code == GameCode), default), Times.Once);
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once);
     }
 }

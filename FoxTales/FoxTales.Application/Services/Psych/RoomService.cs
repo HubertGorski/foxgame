@@ -121,18 +121,15 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 
     public async Task JoinRoom(PlayerDto player, string? gameCode, string? password, int? ownerId)
     {
-        await RemoveUserFromAllRooms(player.UserId);
         string connectionId = GetPlayerConnectionId(player);
-
         RoomDto? room = await VerifyRoomAccessGetRoom(connectionId, gameCode, password, ownerId);
-        if (room == null) return;
+        if (room == null || room.Code == null) return;
 
         await RemoveAllRoomsByOwnerId(player.UserId);
+        await RemoveUserFromAllRooms(player.UserId);
+
         player.IsReady = false;
         room.Users.Add(player);
-
-        if (room.Code == null)
-            throw new InvalidOperationException($"Code does not exist! (JoinRoom)");
 
         await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
         await _mediator.Publish(new RefreshRoomEvent(room));
@@ -187,7 +184,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     {
         RoomDto? selectedRoom = ownerId != null
         ? Rooms.Values.FirstOrDefault(r => (r.Owner.UserId == ownerId) && (r.Password == password || r.Password == null))
-        : Rooms.GetValueOrDefault(gameCode);
+        : Rooms.GetValueOrDefault(gameCode ?? "");
 
         if (selectedRoom == null)
         {
