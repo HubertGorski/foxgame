@@ -4,40 +4,18 @@ using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
 using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
+using FoxTales.Application.Tests.Common;
 using FoxTales.Domain.Enums;
 using MediatR;
 using Moq;
 
 namespace FoxTales.Application.Tests.Services;
 
-public class RoomServiceTests
+public class RoomServiceTests : BaseTest
 {
     private readonly IRoomService _service;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRoundService> _roundServiceMock;
-
-    private const string GameCode = "PIESEK1";
-    private const string AnotherGameCode = "MIASTO69";
-    private const string OwnerName = "Natka";
-    private const string OwnerConnectionId = "1";
-    private const int OwnerId = 1;
-    private const string UserName = "Hubi";
-    private const string UserConnectionId = "2";
-    private const int UserId = 2;
-    private const string UserName_2 = "Adam";
-    private const string UserConnectionId_2 = "3";
-    private const int UserId_2 = 3;
-
-    private static readonly ReadOnlyDictionary<string, QuestionDto> Library = new(new Dictionary<string, QuestionDto>
-    {
-        { "ownerQuestion", new() { Text = "Example owner question", Language = Language.EN, OwnerId = OwnerId } },
-        { "ownerQuestion_2", new() { Text = "Example owner question 2", Language = Language.EN, OwnerId = OwnerId } },
-        { "userQuestion", new() { Text = "Example user question", Language = Language.EN, OwnerId = UserId } },
-        { "userQuestion_2", new() { Text = "Example user question 2", Language = Language.EN, OwnerId = UserId } },
-        { "publicQuestion", new() { Text = "Example public question", Language = Language.EN, IsPublic = true } },
-        { "publicQuestion_2", new() { Text = "Example public question 2", Language = Language.EN, IsPublic = true } }
-    });
-
 
     public RoomServiceTests()
     {
@@ -46,33 +24,6 @@ public class RoomServiceTests
         _mediatorMock = new Mock<IMediator>();
         _roundServiceMock = new Mock<IRoundService>();
         _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object);
-    }
-
-    private static PlayerDto CreateTestPlayer(int userId, string username, string? connectionId)
-    {
-        return new PlayerDto
-        {
-            UserId = userId,
-            Username = username,
-            ConnectionId = connectionId,
-            Avatar = new AvatarDto
-            {
-                AvatarId = 1,
-                Name = AvatarName.Default,
-                IsPremium = false
-            }
-        };
-    }
-
-    private static RoomDto CreateTestRoom(string? code, int ownerId, string ownerName, string? ownerConnectionId, List<PlayerDto>? users = null)
-    {
-        PlayerDto owner = CreateTestPlayer(ownerId, ownerName, ownerConnectionId);
-        return new RoomDto
-        {
-            Code = code,
-            Owner = owner,
-            Users = users ?? [owner]
-        };
     }
 
     [Fact]
