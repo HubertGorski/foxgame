@@ -150,4 +150,76 @@ public class RoundServiceTests : BaseTest
 
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Never);
     }
+
+    [Fact]
+    public async Task MarkAllUsersUnreadyIfOwner_ShouldDoNothing_WhenPlayerNotFound()
+    {
+        // GIVEN
+        // Create users
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        // All users are ready
+        owner.IsReady = true;
+        user.IsReady = true;
+
+        // Create room
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user];
+
+        // WHEN
+        await _service.MarkAllUsersUnreadyIfOwner(room, UserConnectionId_2);
+
+        // THEN
+        room.Users.Should().OnlyContain(u => u.IsReady, "the player was not found, so no user's ready state should change");
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task MarkAllUsersUnreadyIfOwner_ShouldDoNothing_WhenPlayerIsNotOwner()
+    {
+        // GIVEN
+        // Create users
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        // All users are ready
+        owner.IsReady = true;
+        user.IsReady = true;
+
+        // Create room
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user];
+
+        // WHEN
+        await _service.MarkAllUsersUnreadyIfOwner(room, UserConnectionId);
+
+        // THEN
+        room.Users.Should().OnlyContain(u => u.IsReady, "the player is not the owner, so no user's ready state should change");
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task MarkAllUsersUnreadyIfOwner_ShouldSetAllUsersUnreadyAndPublishEvent_WhenPlayerIsOwner()
+    {
+        // GIVEN
+        // Create users
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        // All users are ready
+        owner.IsReady = true;
+        user.IsReady = true;
+
+        // Create room
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user];
+
+        // WHEN
+        await _service.MarkAllUsersUnreadyIfOwner(room, OwnerConnectionId);
+
+        // THEN
+        room.Users.Should().OnlyContain(u => !u.IsReady, "the player is the owner, so all users should be set to unready");
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
