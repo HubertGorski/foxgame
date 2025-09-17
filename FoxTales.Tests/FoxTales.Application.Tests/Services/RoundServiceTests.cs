@@ -172,7 +172,8 @@ public class RoundServiceTests : BaseTest
 
         // THEN
         room.Users.Should().OnlyContain(u => u.IsReady, "the player was not found, so no user's ready state should change");
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+        
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
     }
 
     [Fact]
@@ -196,7 +197,8 @@ public class RoundServiceTests : BaseTest
 
         // THEN
         room.Users.Should().OnlyContain(u => u.IsReady, "the player is not the owner, so no user's ready state should change");
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Never);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
     }
 
     [Fact]
@@ -220,6 +222,166 @@ public class RoundServiceTests : BaseTest
 
         // THEN
         room.Users.Should().OnlyContain(u => !u.IsReady, "the player is the owner, so all users should be set to unready");
-        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), It.IsAny<CancellationToken>()), Times.Once);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddAnswer_SetsUserAnswerAndPublishesEvent_WhenCalled()
+    {
+        // GIVEN
+        RoomDto room = CreateTestRoom();
+        AnswerDto answer = CreateTestAnswer(OwnerId);
+
+        // WHEN
+        await _service.AddAnswer(room, answer);
+
+        // THEN
+        PlayerDto updatedUser = room.Users.First(u => u.UserId == OwnerId);
+
+        updatedUser.IsReady.Should().BeTrue(because: "when a user submits an answer they should be marked as ready");
+
+        updatedUser.Answer.Should().BeEquivalentTo(answer, because: "the submitted answer should be stored on the user");
+
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default), Times.Once, "adding an answer should trigger a room refresh event");
+    }
+
+    [Fact]
+    public async Task AddAnswer_ShouldThrow_WhenUserDoesNotExistInRoom()
+    {
+        // GIVEN
+        RoomDto room = CreateTestRoom();
+        AnswerDto answer = CreateTestAnswer(UserId);
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.AddAnswer(room, answer));
+
+        // THEN
+        Assert.Contains($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddAnswer_ShouldThrow_WhenAnswerHasNoOwner()
+    {
+        // GIVEN
+        RoomDto room = CreateTestRoom();
+        AnswerDto answer = CreateTestAnswer();
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.AddAnswer(room, answer));
+
+        // THEN
+        Assert.Contains($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)", ex.Message);
+    }
+
+    [Fact]
+    public async Task ChooseAnswer_ShouldThrow_WhenAnswerOwnerDoesNotExist()
+    {
+        // GIVEN
+        RoomDto room = CreateTestRoom();
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.ChooseAnswer(room, OwnerId, UserId));
+
+        // THEN
+        Assert.Contains($"Player {UserId} not found in room {room.Code}. (ChooseAnswer)", ex.Message);
+    }
+
+    [Fact]
+    public async Task ChooseAnswer_ShouldThrow_WhenVoterDoesNotExist()
+    {
+        // GIVEN
+        RoomDto room = CreateTestRoom();
+        room.Users = [];
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.ChooseAnswer(room, OwnerId, UserId));
+
+        // THEN
+        Assert.Contains($"Player {OwnerId} not found in room {room.Code}. (ChooseAnswer)", ex.Message);
+    }
+
+    [Fact]
+    public async Task ChooseAnswer_ShouldThrow_WhenAnswerIsMissing()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user];
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.ChooseAnswer(room, OwnerId, UserId));
+
+        // THEN
+        Assert.Contains($"Player {user.UserId} (answerOwner ) has no answer to vote on. Voter: {owner.UserId}. (ChooseAnswer)", ex.Message);
+    }
+
+    [Fact]
+    public async Task ChooseAnswer_ShouldDoNothing_WhenUserHasAlreadyVoted()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+
+        RoomDto room = CreateTestRoom();
+        user.Answer = CreateTestAnswer(UserId);
+        user.VotersIdsForHisAnswer = [OwnerId];
+
+        room.Users = [owner, user];
+
+        // WHEN
+        await _service.ChooseAnswer(room, OwnerId, UserId);
+
+        // THEN
+        owner.IsReady.Should().BeFalse(because: "owner has already voted and should not be marked as ready again");
+
+        user.PointsInGame.Should().Be(0, because: "no new votes should be added since owner already voted");
+
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default),
+            Times.Never, "no refresh event should be published if user has already voted");
+    }
+
+    [Fact]
+    public async Task ChooseAnswer_ShouldUpdatePointsAndSetUsersReady_WhenCalledMultipleTimes()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+
+        owner.Answer = CreateTestAnswer();
+        user.Answer = CreateTestAnswer();
+        user_2.Answer = CreateTestAnswer();
+
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user, user_2];
+
+        // WHEN
+        await _service.ChooseAnswer(room, OwnerId, UserId);
+        await _service.ChooseAnswer(room, UserId_2, UserId);
+        await _service.ChooseAnswer(room, UserId, UserId_2);
+
+        // THEN
+        owner.IsReady.Should().BeTrue(because: "owner participated in voting and should be marked as ready");
+
+        user.IsReady.Should().BeTrue(because: "user participated in voting and should be marked as ready");
+
+        user_2.IsReady.Should().BeTrue(because: "user_2 participated in voting and should be marked as ready");
+
+        owner.PointsInGame.Should().Be(0, because: "owner did not receive votes in this scenario");
+
+        user.PointsInGame.Should().Be(20, because: "user received votes from owner and user_2");
+
+        user_2.PointsInGame.Should().Be(10, because: "user_2 received a vote from user");
+
+        _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default),
+            Times.Exactly(3), "a refresh event should be published after each vote");
     }
 }

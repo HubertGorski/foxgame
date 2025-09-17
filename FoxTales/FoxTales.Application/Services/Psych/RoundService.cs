@@ -48,14 +48,21 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
     public async Task ChooseAnswer(RoomDto room, int playerId, int selectedAnswerUserId)
     {
         PlayerDto voter = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {room.Code}. (ChooseAnswer)");
-        PlayerDto owner = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {room.Code}. (ChooseAnswer)");
+        PlayerDto answerOwner = room.Users.FirstOrDefault(u => u.UserId == selectedAnswerUserId) ?? throw new InvalidOperationException($"Player {selectedAnswerUserId} not found in room {room.Code}. (ChooseAnswer)");
 
-        if (owner.VotersIdsForHisAnswer.Contains(voter.UserId) || owner.Answer == null) return;
+        bool hasAlreadyVoted = answerOwner.VotersIdsForHisAnswer.Contains(voter.UserId);
+        bool answerIsMissing = answerOwner.Answer == null;
 
-        _roundLogic.UpdateVotePool(voter, owner);
+        if (answerIsMissing)
+            throw new InvalidOperationException($"Player {answerOwner.UserId} (answerOwner ) has no answer to vote on. Voter: {voter.UserId}. (ChooseAnswer)");
+
+        if (hasAlreadyVoted)
+            return;
+
+        _roundLogic.UpdateVotePool(voter, answerOwner);
 
         voter.IsReady = true;
-        owner.PointsInGame += 10; //TODO: zrobic sensowniejszy przydzial punktow
+        answerOwner.PointsInGame += 10;
 
         await _mediator.Publish(new RefreshRoomEvent(room));
     }

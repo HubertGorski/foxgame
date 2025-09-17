@@ -54,4 +54,17 @@ public abstract class BaseTest
             Users = users ?? [owner]
         };
     }
+
+    protected static AnswerDto CreateTestAnswer(int? ownerId = null)
+    {
+        AnswerDto answer = new()
+        {
+            Answer = "Example answer"
+        };
+
+        if (ownerId != null)
+            answer.OwnerId = (int)ownerId;
+
+        return answer;
+    }
 }
