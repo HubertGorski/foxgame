@@ -18,6 +18,9 @@ public abstract class BaseTest
     protected const string UserName_2 = "Adam";
     protected const string UserConnectionId_2 = "3";
     protected const int UserId_2 = 3;
+    protected const string UserName_3 = "Oliwia";
+    protected const string UserConnectionId_3 = "4";
+    protected const int UserId_3 = 4;
     protected static readonly ReadOnlyDictionary<string, QuestionDto> Library = new(new Dictionary<string, QuestionDto>
     {
         { "ownerQuestion", new() { Text = "Example owner question", Language = Language.EN, OwnerId = OwnerId } },
@@ -59,12 +62,22 @@ public abstract class BaseTest
     {
         AnswerDto answer = new()
         {
-            Answer = "Example answer"
+            Answer = "Example answer",
         };
 
         if (ownerId != null)
             answer.OwnerId = (int)ownerId;
 
         return answer;
+    }
+
+    protected static QuestionDto CreateTestQuestion(int ownerId = UserId, string text = "Example **** question", Language language = Language.EN)
+    {
+        return new()
+        {
+            Text = text,
+            Language = language,
+            OwnerId = ownerId
+        };
     }
 }

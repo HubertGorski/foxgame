@@ -53,7 +53,7 @@ public class RoundServiceTests : BaseTest
             await _service.SetNewRound(room, OwnerConnectionId));
 
         // THEN
-        Assert.Contains($"Player not found in room {room.Code}. (SetNewRound)", ex.Message);
+        ex.Message.Should().Contain($"Player not found in room {room.Code}. (SetNewRound)");
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class RoundServiceTests : BaseTest
             await _service.AddAnswer(room, answer));
 
         // THEN
-        Assert.Contains($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)", ex.Message);
+        ex.Message.Should().Contain($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)");
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public class RoundServiceTests : BaseTest
             await _service.AddAnswer(room, answer));
 
         // THEN
-        Assert.Contains($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)", ex.Message);
+        ex.Message.Should().Contain($"Player {answer.OwnerId} not found in room {room.Code} (AddAnswer)");
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class RoundServiceTests : BaseTest
             await _service.ChooseAnswer(room, OwnerId, UserId));
 
         // THEN
-        Assert.Contains($"Player {UserId} not found in room {room.Code}. (ChooseAnswer)", ex.Message);
+        ex.Message.Should().Contain($"Player {UserId} not found in room {room.Code}. (ChooseAnswer)");
     }
 
     [Fact]
@@ -302,7 +302,7 @@ public class RoundServiceTests : BaseTest
             await _service.ChooseAnswer(room, OwnerId, UserId));
 
         // THEN
-        Assert.Contains($"Player {OwnerId} not found in room {room.Code}. (ChooseAnswer)", ex.Message);
+        ex.Message.Should().Contain($"Player {OwnerId} not found in room {room.Code}. (ChooseAnswer)");
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class RoundServiceTests : BaseTest
             await _service.ChooseAnswer(room, OwnerId, UserId));
 
         // THEN
-        Assert.Contains($"Player {user.UserId} (answerOwner ) has no answer to vote on. Voter: {owner.UserId}. (ChooseAnswer)", ex.Message);
+        ex.Message.Should().Contain($"Player {user.UserId} (answerOwner ) has no answer to vote on. Voter: {owner.UserId}. (ChooseAnswer)");
     }
 
     [Fact]

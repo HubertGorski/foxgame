@@ -21,6 +21,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
+using FoxTales.Application.Interfaces.Logics;
+using FoxTales.Application.Services.Logics;
 
 namespace FoxTales.Composition;
 
@@ -34,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IRoundService, RoundService>();
+        services.AddScoped<IRoundLogic, RoundLogic>();
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
