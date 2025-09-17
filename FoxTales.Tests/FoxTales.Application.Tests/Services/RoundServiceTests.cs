@@ -172,7 +172,7 @@ public class RoundServiceTests : BaseTest
 
         // THEN
         room.Users.Should().OnlyContain(u => u.IsReady, "the player was not found, so no user's ready state should change");
-        
+
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
     }
 
@@ -344,6 +344,9 @@ public class RoundServiceTests : BaseTest
 
         user.PointsInGame.Should().Be(0, because: "no new votes should be added since owner already voted");
 
+        _roundLogicMock.Verify(r => r.UpdateVotePool(owner, user),
+            Times.Never, "UpdateVotePool should not be called because owner has already voted");
+
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default),
             Times.Never, "no refresh event should be published if user has already voted");
     }
@@ -380,6 +383,12 @@ public class RoundServiceTests : BaseTest
         user.PointsInGame.Should().Be(20, because: "user received votes from owner and user_2");
 
         user_2.PointsInGame.Should().Be(10, because: "user_2 received a vote from user");
+
+        _roundLogicMock.Verify(r => r.UpdateVotePool(owner, user), Times.Once, "owner should have voted for user exactly once");
+
+        _roundLogicMock.Verify(r => r.UpdateVotePool(user_2, user), Times.Once, "user_2 should have voted for user exactly once");
+
+        _roundLogicMock.Verify(r => r.UpdateVotePool(user, user_2), Times.Once, "user should have voted for user_2 exactly once");
 
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room == room), default),
             Times.Exactly(3), "a refresh event should be published after each vote");
