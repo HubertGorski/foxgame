@@ -4,6 +4,7 @@ using FoxTales.Api.Platform;
 using FluentValidation.AspNetCore;
 using FoxTales.Api.Hubs;
 using System.Reflection;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,11 @@ builder.Services.AddControllers().AddFluentValidation(); //TODO: Zmienic na nows
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.AddFilter<LoggingHubFilter>();
+});
+
 
 builder.Services.AddCors(options =>
 {
@@ -33,6 +38,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:4173",
+                "http://192.168.100.3:5173",
                 "https://foxtales.cc",
                 "https://www.foxtales.cc"
             )
