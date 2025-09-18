@@ -295,6 +295,8 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
+        owner.IsReady = true;
         RoomService.AddRoomForTest(room);
 
         // When
@@ -302,6 +304,38 @@ public class RoomServiceTests : BaseTest
 
         // Then
         _mediatorMock.Verify(m => m.Publish(It.Is<RefreshRoomEvent>(e => e.Room.Users.All(u => !u.IsReady)), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetStatus_ShouldNotPublishEvent_WhenStatusAlreadyTrue()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
+        owner.IsReady = true;
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.SetStatus(GameCode, OwnerId, true);
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task SetStatus_ShouldNotPublishEvent_WhenStatusAlreadyFalse()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
+        owner.IsReady = false;
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.SetStatus(GameCode, OwnerId, false);
+
+        // Then
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
     }
 
     [Theory]

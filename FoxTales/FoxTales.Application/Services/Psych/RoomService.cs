@@ -63,6 +63,9 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     {
         RoomDto room = GetRoomByCode(gameCode);
         PlayerDto user = room.Users.FirstOrDefault(u => u.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room {gameCode} (SetStatus)");
+        if (user.IsReady == status)
+            return;
+
         user.IsReady = status;
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
