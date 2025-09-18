@@ -51,7 +51,10 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         if (room.Users.Count == 0)
             throw new InvalidOperationException("Room is empty! (Edit Room)");
 
-        var _ = GetRoomByCode(room.Code);
+        var currentRoom = GetRoomByCode(room.Code);
+        if (room.Users.Count != currentRoom.Users.Count)
+            throw new InvalidOperationException($"The number of players is not correct in '{room.Code}' room! (Edit Room)");
+
         Rooms[room.Code] = room;
 
         if (room.IsPublic)

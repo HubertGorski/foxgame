@@ -187,6 +187,25 @@ public class RoomServiceTests : BaseTest
     }
 
     [Fact]
+    public async Task EditRoom_ShouldThrow_WhenPlayersCountIsNotCorrect()
+    {
+        // Given
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId, [owner, user]);
+        RoomService.AddRoomForTest(room);
+
+        RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId, [owner]);
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.EditRoom(updatedRoom));
+
+        // Then
+        Assert.Contains($"The number of players is not correct in '{room.Code}' room! (Edit Room)", ex.Message);
+    }
+
+    [Fact]
     public async Task EditRoom_ShouldThrow_WhenRoomDoesNotExist()
     {
         // Given
@@ -741,6 +760,27 @@ public class RoomServiceTests : BaseTest
 
         // When
         await _service.JoinRoom(user, null, "NOK PASS", OwnerId);
+
+        // Then
+        Assert.DoesNotContain(user, room.Users);
+
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<JoinRoomEvent>(), default), Times.Never);
+        _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task JoinRoom_ShouldNotJoin_WhenUserSelectsRoomWithEmptyPassword()
+    {
+        // Given
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        user.IsReady = true;
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        room.Password = "OK PASS";
+        RoomService.AddRoomForTest(room);
+
+        // When
+        await _service.JoinRoom(user, null, null, OwnerId);
 
         // Then
         Assert.DoesNotContain(user, room.Users);
