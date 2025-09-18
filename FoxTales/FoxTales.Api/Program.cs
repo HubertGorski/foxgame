@@ -5,6 +5,7 @@ using FluentValidation.AspNetCore;
 using FoxTales.Api.Hubs;
 using System.Reflection;
 using Microsoft.AspNetCore.SignalR;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +13,13 @@ builder.ConfigureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
 await builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddSingleton<INotificationPublisher, LoggingNotificationPublisher>();
+
 builder.Services.AddMediatR(cfg =>
-        cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
-    );
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+);
+
 builder.Services.AddApplication(builder.Configuration);
 
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
