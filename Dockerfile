@@ -3,6 +3,7 @@ WORKDIR /src
 
 COPY ["HubWorkspace.sln", "."]
 COPY ["FoxTales/FoxTales.Api/FoxTales.Api.csproj", "FoxTales/FoxTales.Api/"]
+COPY ["FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj", "FoxTales.Tests/FoxTales.Application.Tests/"]
 COPY ["FoxTales/FoxTales.Application/FoxTales.Application.csproj", "FoxTales/FoxTales.Application/"]
 COPY ["FoxTales/FoxTales.Domain/FoxTales.Domain.csproj", "FoxTales/FoxTales.Domain/"]
 COPY ["FoxTales/FoxTales.Infrastructure/FoxTales.Infrastructure.csproj", "FoxTales/FoxTales.Infrastructure/"]
