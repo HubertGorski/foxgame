@@ -1,5 +1,4 @@
 version: '3.9'
-# docker-compose up -d
 services:
   sqlserver-foxtales:
     image: mcr.microsoft.com/mssql/server:2019-latest

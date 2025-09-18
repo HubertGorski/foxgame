@@ -24,8 +24,4 @@
     <ProjectReference Include="..\FoxTales.Composition\FoxTales.Composition.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="logs\" />
-  </ItemGroup>
-
 </Project>
