@@ -57,6 +57,23 @@ public class RoundServiceTests : BaseTest
     }
 
     [Fact]
+    public async Task SetNewRound_ShouldThrow_WhenPlayersNotReady()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        RoomDto room = CreateTestRoom();
+        room.Users = [owner, user];
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.SetNewRound(room, OwnerConnectionId));
+
+        // THEN
+        ex.Message.Should().Contain($"Players are not ready in the room {room.Code}! (SetNewRound)");
+    }
+
+    [Fact]
     public async Task SetNewRound_ShouldStartNewRound_WhenQuestionsAreAvailable_AndOwnerInitiatesStart()
     {
         // GIVEN
@@ -66,7 +83,6 @@ public class RoundServiceTests : BaseTest
         PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
 
         // All users are ready
-        owner.IsReady = true;
         user.IsReady = true;
         user_2.IsReady = true;
 

@@ -135,6 +135,7 @@ public class RoundLogicTests : BaseTest
         user_3.Answer = CreateTestAnswer();
 
         user.VotesReceived = [new(OwnerId, 1)];
+        user.VotesGiven = [new(OwnerId, 1)];
 
         // WHEN
         _logic.UpdateVotePool(user, owner);
@@ -170,8 +171,8 @@ public class RoundLogicTests : BaseTest
         user.VotesReceived.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(OwnerId, 2) },
             "because owner gave 1 vote to user in this round, adding to the existing vote from previous round");
 
-        user.VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(OwnerId, 1) },
-            "because user gave 1 vote to owner");
+        user.VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(OwnerId, 2) },
+            "because user gave 1 vote to owner in this round, adding to the existing vote from previous round");
 
         user_2.VotersIdsForHisAnswer.Should().BeEmpty(
             "because no one voted for user_2");

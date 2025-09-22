@@ -17,7 +17,12 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
     public async Task SetNewRound(RoomDto room, string connectionId)
     {
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
-        if (player == null || room.Owner.UserId != player.UserId) return;
+        if (player == null || room.Owner.UserId != player.UserId)
+            return;
+
+        IEnumerable<PlayerDto> playersExceptOwner = room.Users.Where(u => u.UserId != room.Owner.UserId);
+        if (playersExceptOwner.Any(u => !u.IsReady))
+            throw new InvalidOperationException($"Players are not ready in the room {room.Code}! (SetNewRound)");
 
         if (room.Questions.Count == 0)
         {
@@ -27,7 +32,8 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
         }
 
         QuestionDto question = _roundLogic.GetNewCurrentQuestionWithSelectedPlayer(room);
-        if (question.CurrentUser == null) throw new InvalidOperationException($"Player not found in room {room.Code}. (SetNewRound)");
+        if (question.CurrentUser == null)
+            throw new InvalidOperationException($"Player not found in room {room.Code}. (SetNewRound)");
 
         room.Round += 1;
         room.Users.ForEach(u => u.VotersIdsForHisAnswer = []);
@@ -39,7 +45,8 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
     public async Task MarkAllUsersUnreadyIfOwner(RoomDto room, string connectionId)
     {
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
-        if (player == null || room.Owner.UserId != player.UserId) return;
+        if (player == null || room.Owner.UserId != player.UserId)
+            return;
 
         room.Users.ForEach(u => u.IsReady = false);
         await _mediator.Publish(new RefreshRoomEvent(room));
