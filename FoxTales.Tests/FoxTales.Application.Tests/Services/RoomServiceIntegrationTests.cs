@@ -1,4 +1,3 @@
-
 using FoxTales.Application.Services.Psych;
 using MediatR;
 using FluentAssertions;
@@ -17,6 +16,8 @@ public class RoomServiceIntegrationTests : BaseTest
     private readonly RoundLogic _roundLogic;
     private readonly Mock<IMediator> _mediatorMock;
 
+    private const string TestPassword = "password";
+
     public RoomServiceIntegrationTests()
     {
         RoomService.ClearRoomsForTest();
@@ -29,128 +30,142 @@ public class RoomServiceIntegrationTests : BaseTest
     [Fact]
     public async Task FullRoomFlow_Should_WorkCorrectly()
     {
-        // Tworzenie pokoju
+        // Create room
         PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
         RoomDto room = new()
         {
             Owner = owner,
             Users = []
         };
+
         await _roomService.CreateRoom(room);
-        string? Code = room.Code;
-        Code.Should().NotBeNull();
-        RoomService.GetRoomsForTest()[Code].Users.Should().HaveCount(1);
 
-        // Dołączenie drugiego gracza przez kod
+        string? code = room.Code;
+        code.Should().NotBeNull();
+        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(1);
+
+        // Join second player by code
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
-        RoomService.GetRoomsForTest()[Code].Users.Should().HaveCount(1);
-        await _roomService.JoinRoom(user, Code, null, null);
-        RoomService.GetRoomsForTest()[Code].Users.Should().HaveCount(2);
+        await _roomService.JoinRoom(user, code, null, null);
+        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(2);
 
-        // Ustawienie pokoju na publiczny
-        await _roomService.EditRoom(new()
+        // Set room public
+        await _roomService.EditRoom(new RoomDto
         {
             Owner = owner,
             Users = [owner, user],
-            Code = Code,
+            Code = code,
             IsPublic = true
         });
 
-        // Dołączenie trzeciego gracza do publicznego pokoju bez hasła
-        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
-        await _roomService.JoinRoom(user_2, null, null, OwnerId);
-        RoomService.GetRoomsForTest()[Code].Users.Should().HaveCount(3);
+        // Join third player to public room without password
+        PlayerDto user2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+        await _roomService.JoinRoom(user2, null, null, OwnerId);
+        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(3);
 
-        // Ustawienie pokoju na publiczny z hasłem
-        await _roomService.EditRoom(new()
+        // Set room public with password
+        await _roomService.EditRoom(new RoomDto
         {
             Owner = owner,
-            Users = [owner, user, user_2],
-            Code = Code,
+            Users = [owner, user, user2],
+            Code = code,
             IsPublic = true,
-            Password = "password"
+            Password = TestPassword
         });
 
-        // Dołączenie czwartego gracza do publicznego pokoju z hasłem
-        PlayerDto user_3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
-        await _roomService.JoinRoom(user_3, null, "password", OwnerId);
-        RoomService.GetRoomsForTest()[Code].Users.Should().HaveCount(4);
+        // Join fourth player with password
+        PlayerDto user3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
+        await _roomService.JoinRoom(user3, null, TestPassword, OwnerId);
+        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(4);
 
-        // Dodanie pytań
-        List<QuestionDto> ownerQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"]];
-        await _roomService.AddQuestionsToGame(Code, OwnerId, ownerQuestions);
-        RoomService.GetRoomsForTest()[Code].Questions.Should().Equal(ownerQuestions);
+        // Add questions
+        List<QuestionDto> ownerQuestions =
+        [
+            Library["ownerQuestion"],
+            Library["ownerQuestion_2"]
+        ];
+        await _roomService.AddQuestionsToGame(code, OwnerId, ownerQuestions);
+        RoomService.GetRoomsForTest()[code].Questions.Should().Equal(ownerQuestions);
 
-        await _roomService.AddQuestionsToGame(Code, UserId, [Library["userQuestion"]]);
-        RoomService.GetRoomsForTest()[Code].Questions.Should().Equal(ownerQuestions.Append(Library["userQuestion"]));
+        await _roomService.AddQuestionsToGame(code, UserId, [Library["userQuestion"]]);
+        RoomService.GetRoomsForTest()[code].Questions.Should().Equal(ownerQuestions.Append(Library["userQuestion"]));
 
-        // Zgłaszanie gotowości do gry
-        await _roomService.SetStatus(Code, UserId, true);
-        await _roomService.SetStatus(Code, UserId_2, true);
-        await _roomService.SetStatus(Code, UserId_3, true);
+        // Players mark ready
+        await _roomService.SetStatus(code, UserId, true);
+        await _roomService.SetStatus(code, UserId_2, true);
+        await _roomService.SetStatus(code, UserId_3, true);
 
-        // start gry
-        await _roomService.StartGame(Code, OwnerConnectionId);
-        RoomService.GetRoomsForTest()[Code].IsGameStarted.Should().BeTrue();
-        RoomService.GetRoomsForTest()[Code].Users.All(u => u.IsReady).Should().BeFalse();
+        // Start game
+        await _roomService.StartGame(code, OwnerConnectionId);
+        RoomDto activeRoom = RoomService.GetRoomsForTest()[code];
+        activeRoom.IsGameStarted.Should().BeTrue();
+        activeRoom.Users.Should().OnlyContain(u => !u.IsReady);
 
-        // gracze dodaja odpowiedzi
-        room = RoomService.GetRoomsForTest()[Code];
-        await _roundService.AddAnswer(room, CreateTestAnswer(UserId));
-        await _roundService.AddAnswer(room, CreateTestAnswer(UserId_2));
-        await _roundService.AddAnswer(room, CreateTestAnswer(UserId_3));
-        await _roundService.AddAnswer(room, CreateTestAnswer(OwnerId));
-        RoomService.GetRoomsForTest()[Code].Users.All(u => u.IsReady).Should().BeTrue();
+        // Players submit answers
+        await _roundService.AddAnswer(activeRoom, CreateTestAnswer(UserId));
+        await _roundService.AddAnswer(activeRoom, CreateTestAnswer(UserId_2));
+        await _roundService.AddAnswer(activeRoom, CreateTestAnswer(UserId_3));
+        await _roundService.AddAnswer(activeRoom, CreateTestAnswer(OwnerId));
+        activeRoom.Users.Should().OnlyContain(u => u.IsReady);
 
-        // Rozpoczęcie fazy głosowania
-        await _roundService.MarkAllUsersUnreadyIfOwner(room, OwnerConnectionId);
-        RoomService.GetRoomsForTest()[Code].Users.All(u => u.IsReady).Should().BeFalse();
+        // Start voting phase
+        await _roundService.MarkAllUsersUnreadyIfOwner(activeRoom, OwnerConnectionId);
+        activeRoom.Users.Should().OnlyContain(u => !u.IsReady);
 
-        // gracze głosują
-        await _roundService.ChooseAnswer(room, OwnerId, UserId);
-        await _roundService.ChooseAnswer(room, UserId, UserId_2);
-        await _roundService.ChooseAnswer(room, UserId_2, UserId);
-        await _roundService.ChooseAnswer(room, UserId_3, OwnerId);
-        RoomService.GetRoomsForTest()[Code].Users.All(u => u.IsReady).Should().BeTrue();
+        // Players vote
+        await _roundService.ChooseAnswer(activeRoom, OwnerId, UserId);
+        await _roundService.ChooseAnswer(activeRoom, UserId, UserId_2);
+        await _roundService.ChooseAnswer(activeRoom, UserId_2, UserId);
+        await _roundService.ChooseAnswer(activeRoom, UserId_3, OwnerId);
+        activeRoom.Users.Should().OnlyContain(u => u.IsReady);
 
-        // Rozpoczęcie ujawnienie wyników
-        await _roundService.MarkAllUsersUnreadyIfOwner(room, OwnerConnectionId);
-        List<PlayerDto> usersInRoom = RoomService.GetRoomsForTest()[Code].Users;
-        usersInRoom.All(u => u.IsReady).Should().BeFalse();
-        usersInRoom.First(u => u.UserId == OwnerId).PointsInGame.Should().Be(10);
-        usersInRoom.First(u => u.UserId == UserId).PointsInGame.Should().Be(20);
-        usersInRoom.First(u => u.UserId == UserId_2).PointsInGame.Should().Be(10);
-        usersInRoom.First(u => u.UserId == UserId_3).PointsInGame.Should().Be(0);
+        // Reveal results
+        await _roundService.MarkAllUsersUnreadyIfOwner(activeRoom, OwnerConnectionId);
+        var users = RoomService.GetRoomsForTest()[code].Users;
 
-        usersInRoom.First(u => u.UserId == OwnerId).Answer!.VotersCount.Should().Be(1);
-        usersInRoom.First(u => u.UserId == UserId).Answer!.VotersCount.Should().Be(2);
-        usersInRoom.First(u => u.UserId == UserId_2).Answer!.VotersCount.Should().Be(1);
-        usersInRoom.First(u => u.UserId == UserId_3).Answer!.VotersCount.Should().Be(0);
+        users.Should().OnlyContain(u => !u.IsReady);
 
-        usersInRoom.First(u => u.UserId == OwnerId).VotesReceived.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId_3, 1) });
-        usersInRoom.First(u => u.UserId == OwnerId).VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId, 1) });
+        users.First(u => u.UserId == OwnerId).PointsInGame.Should().Be(10);
+        users.First(u => u.UserId == UserId).PointsInGame.Should().Be(20);
+        users.First(u => u.UserId == UserId_2).PointsInGame.Should().Be(10);
+        users.First(u => u.UserId == UserId_3).PointsInGame.Should().Be(0);
 
-        usersInRoom.First(u => u.UserId == UserId).VotesReceived.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId_2, 1), new(OwnerId, 1) });
-        usersInRoom.First(u => u.UserId == UserId).VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId_2, 1) });
+        // Verify votes distribution
+        users.First(u => u.UserId == OwnerId).Answer!.VotersCount.Should().Be(1);
+        users.First(u => u.UserId == UserId).Answer!.VotersCount.Should().Be(2);
+        users.First(u => u.UserId == UserId_2).Answer!.VotersCount.Should().Be(1);
+        users.First(u => u.UserId == UserId_3).Answer!.VotersCount.Should().Be(0);
 
-        usersInRoom.First(u => u.UserId == UserId_2).VotesReceived.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId, 1) });
-        usersInRoom.First(u => u.UserId == UserId_2).VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(UserId, 1) });
+        users.First(u => u.UserId == OwnerId).VotesReceived.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId_3, 1)]);
+        users.First(u => u.UserId == OwnerId).VotesGiven.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId, 1)]);
 
-        usersInRoom.First(u => u.UserId == UserId_3).VotesReceived.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { });
-        usersInRoom.First(u => u.UserId == UserId_3).VotesGiven.Should().BeEquivalentTo(new List<KeyValuePair<int, int>> { new(OwnerId, 1) });
+        users.First(u => u.UserId == UserId).VotesReceived.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId_2, 1), new(OwnerId, 1)]);
+        users.First(u => u.UserId == UserId).VotesGiven.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId_2, 1)]);
 
-        await _roomService.SetStatus(Code, OwnerId, true);
-        await _roomService.SetStatus(Code, UserId, true);
-        await _roomService.SetStatus(Code, UserId_2, true);
-        await _roomService.SetStatus(Code, UserId_3, true);
+        users.First(u => u.UserId == UserId_2).VotesReceived.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId, 1)]);
+        users.First(u => u.UserId == UserId_2).VotesGiven.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(UserId, 1)]);
 
-        // Rozpoczęcie nowej rundy
-        await _roundService.SetNewRound(room, OwnerConnectionId);
-        RoomService.GetRoomsForTest()[Code].Users.All(u => u.IsReady).Should().BeFalse();
+        users.First(u => u.UserId == UserId_3).VotesReceived.Should().BeEmpty();
+        users.First(u => u.UserId == UserId_3).VotesGiven.Should()
+            .BeEquivalentTo([new KeyValuePair<int, int>(OwnerId, 1)]);
 
-        // Opuszczenie pokoju przez właściciela powoduje zamknięcie
-        await _roomService.LeaveRoom(Code, OwnerId);
-        RoomService.GetRoomsForTest().Should().NotContainKey(Code);
+        // Prepare for new round
+        await _roomService.SetStatus(code, OwnerId, true);
+        await _roomService.SetStatus(code, UserId, true);
+        await _roomService.SetStatus(code, UserId_2, true);
+        await _roomService.SetStatus(code, UserId_3, true);
+
+        await _roundService.SetNewRound(activeRoom, OwnerConnectionId);
+        RoomService.GetRoomsForTest()[code].Users.Should().OnlyContain(u => !u.IsReady);
+
+        // Owner leaves -> room closes
+        await _roomService.LeaveRoom(code, OwnerId);
+        RoomService.GetRoomsForTest().Should().NotContainKey(code);
     }
 }
-
