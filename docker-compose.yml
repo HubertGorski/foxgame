@@ -16,6 +16,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
+    image: backend-foxtales
     container_name: backend-foxtales
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
