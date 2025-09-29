@@ -2,10 +2,10 @@ using AutoMapper;
 using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.FoxGame;
 using FoxTales.Application.DTOs.User;
-using FoxTales.Application.DTOs.UserCard;
 using FoxTales.Application.Exceptions;
 using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces;
+using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Enums;
 using FoxTales.Domain.Interfaces;
@@ -13,13 +13,14 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FoxTales.Application.Services;
 
-public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IJwtTokenGenerator tokenGenerator, IUserLimitService userLimitService) : IUserService
+public class UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IJwtTokenGenerator tokenGenerator, IUserLimitService userLimitService, IPsychLibraryService psychLibraryService) : IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IMapper _mapper = mapper;
     private readonly IPasswordHasher<User> _passwordHasher = passwordHasher;
     private readonly IJwtTokenGenerator _tokenGenerator = tokenGenerator;
     private readonly IUserLimitService _userLimitService = userLimitService;
+    private readonly IPsychLibraryService _psychLibraryService = psychLibraryService;
 
     public async Task RegisterAsync(RegisterUserDto registerUserDto)
     {
@@ -29,30 +30,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         user.RoleId = (int)RoleName.User;
 
         await _userRepository.AddAsync(user);
-    }
-
-    public async Task<ICollection<UserDto>> GetAllUsers()
-    {
-        ICollection<User> users = await _userRepository.GetAllUsers();
-        ICollection<UserDto> usersDtos = _mapper.Map<ICollection<UserDto>>(users);
-        foreach (var userDto in usersDtos)
-        {
-            _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
-        }
-
-        return usersDtos;
-    }
-
-    public async Task<UserDto> GetUserById(int userId)
-    {
-        User? user = await _userRepository.GetUserById(userId) ?? throw new NotFoundException("User doesn't exist!");
-        return _mapper.Map<UserDto>(user);
-    }
-
-    public async Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards()
-    {
-        var users = await _userRepository.GetAllUsersWithCards();
-        return _mapper.Map<ICollection<UserWithCardsDto>>(users);
     }
 
     private async Task<TokensResponseDto> GetTokens(UserDto user)
@@ -74,16 +51,12 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         TokensResponseDto tokens = await GetTokens(userDto);
         userDto.AccessToken = tokens.AccessToken;
 
-        ICollection<FoxGameDto> foxGamesDto = await _userLimitService.GetAllFoxGames();
-
         ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
         ICollection<AvatarDto> avatarsDto = _mapper.Map<ICollection<AvatarDto>>(avatars);
 
-        ICollection<CatalogType> availableCatalogTypes = await _userRepository.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
-        ICollection<CatalogTypeDto> availableCatalogTypesDto = _mapper.Map<ICollection<CatalogTypeDto>>(availableCatalogTypes);
-
-        ICollection<Question> publicQuestions = await _userRepository.GetPublicQuestions();
-        ICollection<QuestionDto> publicQuestionsDto = _mapper.Map<ICollection<QuestionDto>>(publicQuestions);
+        ICollection<FoxGameDto> foxGamesDto = await _userLimitService.GetAllFoxGames();
+        ICollection<CatalogTypeDto> availableCatalogTypesDto = await _psychLibraryService.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
+        ICollection<QuestionDto> publicQuestionsDto = await _psychLibraryService.GetPublicQuestions();
 
         return new()
         {
@@ -125,12 +98,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         await _userRepository.ClearTokens();
     }
 
-    public async Task<ICollection<AvatarDto>> GetAllAvatars()
-    {
-        ICollection<Avatar> avatars = await _userRepository.GetAllAvatars();
-        return _mapper.Map<ICollection<AvatarDto>>(avatars);
-    }
-
     public async Task<bool> SetUsername(string username, int userId)
     {
         return await _userRepository.SetUsername(username, userId);
@@ -141,52 +108,4 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return await _userRepository.SetAvatar(avatarId, userId);
     }
 
-    public async Task<int> AddQuestion(QuestionDto request)
-    {
-        Question question = _mapper.Map<Question>(request);
-        question.CreatedDate = DateTime.UtcNow;
-        int questionId = await _userRepository.AddQuestion(question);
-        await _userRepository.AddQuestionsToCatalogs([questionId], request.CatalogIds);
-        return questionId;
-    }
-
-    public async Task<bool> AssignedQuestionsToCatalogs(List<int> questionsIds, List<int> catalogsIds)
-    {
-        await _userRepository.AddQuestionsToCatalogs(questionsIds, catalogsIds);
-        return true;
-    }
-
-    public async Task<bool> RemoveQuestion(int questionId)
-    {
-        return await _userRepository.RemoveQuestion(questionId);
-    }
-
-    public async Task<bool> RemoveCatalog(int catalogId)
-    {
-        return await _userRepository.RemoveCatalog(catalogId);
-    }
-
-    public async Task<bool> RemoveQuestions(List<int> questionIds)
-    {
-        return await _userRepository.RemoveQuestions(questionIds);
-    }
-
-    public async Task<int> AddCatalog(CreateAndEditCatalogDto request)
-    {
-        Catalog catalog = _mapper.Map<Catalog>(request);
-        catalog.CreatedDate = DateTime.UtcNow;
-        int catalogId = await _userRepository.AddCatalog(catalog, request.QuestionsIds);
-        await _userRepository.AddAvailableTypesToCatalog(catalogId, request.AvailableTypeIds);
-
-        return catalogId;
-    }
-
-    public async Task<bool> EditCatalog(CreateAndEditCatalogDto request)
-    {
-        if (request.CatalogId == null || request.CatalogId == 0)
-            throw new NotFoundException("Catalog doesn't exist!");
-
-        Catalog catalog = _mapper.Map<Catalog>(request);
-        return await _userRepository.EditCatalog(catalog);
-    }
 }

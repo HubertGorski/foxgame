@@ -1,6 +1,4 @@
-using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.User;
-using FoxTales.Application.DTOs.UserCard;
 
 namespace FoxTales.Application.Interfaces;
 
@@ -8,20 +6,9 @@ public interface IUserService
 {
     Task RegisterAsync(RegisterUserDto registerUserDto);
     Task<LoginUserResponseDto> Login(LoginUserDto loginUserDto);
-    Task<ICollection<UserDto>> GetAllUsers();
-    Task<UserDto> GetUserById(int userId);
-    Task<ICollection<UserWithCardsDto>> GetAllUsersWithCards();
     Task<TokensResponseDto> GenerateNewTokens(string refreshToken);
     Task Logout(string refreshToken);
     Task ClearTokens();
-    Task<ICollection<AvatarDto>> GetAllAvatars();
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
-    Task<int> AddQuestion(QuestionDto request);
-    Task<bool> RemoveQuestion(int questionId);
-    Task<bool> RemoveCatalog(int catalogId);
-    Task<bool> RemoveQuestions(List<int> questionIds);
-    Task<int> AddCatalog(CreateAndEditCatalogDto request);
-    Task<bool> EditCatalog(CreateAndEditCatalogDto request);
-    Task<bool> AssignedQuestionsToCatalogs(List<int> questionsIds, List<int> catalogsIds);
 }

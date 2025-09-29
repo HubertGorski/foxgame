@@ -32,6 +32,7 @@ public static class DependencyInjection
     {
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserLimitService, UserLimitService>();
+        services.AddScoped<IPsychLibraryService, PsychLibraryService>();
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoomService, RoomService>();
@@ -48,7 +49,6 @@ public static class DependencyInjection
             {
                 cfg.AddProfile<DylematyCardProfile>();
                 cfg.AddProfile<UserProfile>();
-                cfg.AddProfile<UserCardProfile>();
             });
 
         JwtSettings jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
@@ -97,6 +97,7 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString));
 
         services.AddScoped<IUserRepository, EfUserRepository>();
+        services.AddScoped<IPsychLibraryRepository, EfPsychLibraryRepository>();
         services.AddScoped<IDylematyRepository, EfDylematyRepository>();
         services.AddScoped<IFoxGameRepository, EfFoxGameRepository>();
 

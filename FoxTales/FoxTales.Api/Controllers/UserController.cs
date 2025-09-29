@@ -1,6 +1,5 @@
 using FoxTales.Api.Filters;
 using FoxTales.Api.Helpers;
-using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -13,8 +12,8 @@ namespace FoxTales.Api.Controllers;
 [Authorize]
 public class UserController(IUserService userService) : ControllerBase
 {
-    private const string RefreshToken = "refreshToken";
     private readonly IUserService _userService = userService;
+    private const string RefreshToken = "refreshToken";
 
     [HttpPost("register")]
     [AllowAnonymous]
@@ -57,42 +56,6 @@ public class UserController(IUserService userService) : ControllerBase
         return Ok(tokens.AccessToken);
     }
 
-    [HttpPost("clearTokens")]
-    [AllowAnonymous]
-    public async Task<IActionResult> ClearTokens()
-    {
-        await _userService.ClearTokens();
-        return Ok();
-    }
-
-    [HttpGet("get")]
-    public async Task<IActionResult> GetAllUsers()
-    {
-        var users = await _userService.GetAllUsers();
-        return Ok(users);
-    }
-
-    [HttpGet("get/{userId}")]
-    public async Task<IActionResult> GetUserById(int userId)
-    {
-        var users = await _userService.GetUserById(userId);
-        return Ok(users);
-    }
-
-    [HttpGet("getWithCards")]
-    public async Task<IActionResult> GetAllUsersWithCards()
-    {
-        var users = await _userService.GetAllUsersWithCards();
-        return Ok(users);
-    }
-
-    [HttpGet("getAvatars")]
-    public async Task<IActionResult> GetAllAvatars()
-    {
-        var avatars = await _userService.GetAllAvatars();
-        return Ok(avatars);
-    }
-
     [HttpPost("setUsername")]
     public async Task<IActionResult> SetUsername([FromBody] SetUsernameRequestDto request)
     {
@@ -106,58 +69,6 @@ public class UserController(IUserService userService) : ControllerBase
     {
         int userId = User.GetUserId();
         bool response = await _userService.SetAvatar(request.AvatarId, userId);
-        return Ok(response);
-    }
-
-    [HttpPost("addQuestion")]
-    public async Task<IActionResult> AddQuestion([FromBody] AddQuestionRequestDto request)
-    {
-        request.Question.OwnerId = User.GetUserId();
-        int response = await _userService.AddQuestion(request.Question);
-        return Ok(response);
-    }
-
-    [HttpPost("removeQuestion")]
-    public async Task<IActionResult> RemoveQuestion([FromBody] RemoveQuestionRequestDto request)
-    {
-        bool response = await _userService.RemoveQuestion(request.QuestionId);
-        return Ok(response);
-    }
-
-    [HttpPost("removeQuestions")]
-    public async Task<IActionResult> RemoveQuestions([FromBody] RemoveQuestionsRequestDto request)
-    {
-        bool response = await _userService.RemoveQuestions(request.QuestionsIds);
-        return Ok(response);
-    }
-
-    [HttpPost("removeCatalog")]
-    public async Task<IActionResult> RemoveCatalog([FromBody] RemoveCatalogRequestDto request)
-    {
-        bool response = await _userService.RemoveCatalog(request.CatalogId);
-        return Ok(response);
-    }
-
-    [HttpPost("addCatalog")]
-    public async Task<IActionResult> AddCatalog([FromBody] CreateAndEditCatalogRequestDto request)
-    {
-        request.Catalog.OwnerId = User.GetUserId();
-        int response = await _userService.AddCatalog(request.Catalog);
-        return Ok(response);
-    }
-
-    [HttpPost("editCatalog")]
-    public async Task<IActionResult> EditCatalog([FromBody] CreateAndEditCatalogRequestDto request)
-    {
-        request.Catalog.OwnerId = User.GetUserId();
-        bool response = await _userService.EditCatalog(request.Catalog);
-        return Ok(response);
-    }
-
-    [HttpPost("assignedQuestionsToCatalogs")]
-    public async Task<IActionResult> AssignedQuestionsToCatalogs([FromBody] AssignedQuestionsToCatalogsRequestDto request)
-    {
-        bool response = await _userService.AssignedQuestionsToCatalogs(request.QuestionsIds, request.CatalogsIds);
         return Ok(response);
     }
 }

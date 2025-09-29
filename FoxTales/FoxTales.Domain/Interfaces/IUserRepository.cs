@@ -1,15 +1,12 @@
 
 using FoxTales.Domain.Entities;
-using FoxTales.Domain.Enums;
 
 namespace FoxTales.Domain.Interfaces;
 
 public interface IUserRepository
 {
     Task<User?> GetByUsernameAsync(string username);
-    Task<ICollection<User>> GetAllUsers();
     Task<User?> GetUserById(int userId);
-    Task<ICollection<User>> GetAllUsersWithCards();
     Task<int> AddAsync(User user);
     Task<bool> ExistsByUsernameAsync(string username);
     Task<bool> ExistsByEmailAsync(string email);
@@ -21,14 +18,4 @@ public interface IUserRepository
     Task<ICollection<Avatar>> GetAllAvatars();
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
-    Task<int> AddQuestion(Question question);
-    Task<bool> RemoveQuestion(int questionId);
-    Task<bool> RemoveCatalog(int catalogId);
-    Task<bool> RemoveQuestions(List<int> questionIds);
-    Task<int> AddCatalog(Catalog catalog, List<int> newQuestionIds);
-    Task<bool> EditCatalog(Catalog catalog);
-    Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
-    Task AddAvailableTypesToCatalog(int catalogId, List<int> typeIds);
-    Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds);
-    Task<ICollection<Question>> GetPublicQuestions();
 }
