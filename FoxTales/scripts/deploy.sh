@@ -50,7 +50,7 @@ echo "Czekam aż SQL Server będzie gotowy..."
 sleep 20
 
 echo "Wykonuję migracje bazy danych..."
-ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose run --rm --entrypoint dotnet backend-foxtales FoxTales.Api.dll ef database update"
+ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose exec -T backend-foxtales dotnet FoxTales.Api.dll ef database update 2>&1 | grep -E '(error|Error|ERROR|fail|Fail|exception|Exception|success|Success|done|Done|migrat)'"
 
 echo "Uruchamiam resztę serwisów..."
 ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose up -d"
