@@ -15,12 +15,22 @@ public class UserController(IUserService userService) : ControllerBase
     private readonly IUserService _userService = userService;
     private const string RefreshToken = "refreshToken";
 
-    [HttpPost("register")]
+    [HttpPost("registerUser")]
     [AllowAnonymous]
-    public async Task<IActionResult> Register([FromBody] RegisterUserDto registerUserDto)
+    public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto registerUserDto)
     {
-        await _userService.RegisterAsync(registerUserDto);
+        await _userService.RegisterUser(registerUserDto);
         return Ok("Registered");
+    }
+
+    [HttpPost("registerTmpUser")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RegisterTmpUser([FromBody] RegisterTmpUserDto registerTmpUserDto)
+    {
+        int userId = await _userService.RegisterTmpUser(registerTmpUserDto);
+        LoginUserResponseDto response = await _userService.LoginTmpUser(userId);
+        Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
+        return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes, response.PublicQuestions });
     }
 
     [HttpPost("login")]
@@ -28,7 +38,7 @@ public class UserController(IUserService userService) : ControllerBase
     [RejectIfAuthenticated]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginUserDto)
     {
-        LoginUserResponseDto response = await _userService.Login(loginUserDto);
+        LoginUserResponseDto response = await _userService.LoginUser(loginUserDto);
         Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
         return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes, response.PublicQuestions });
     }

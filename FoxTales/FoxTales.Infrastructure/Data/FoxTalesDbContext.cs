@@ -28,8 +28,10 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.HasKey(u => u.UserId);
             entity.Property(u => u.UserId).ValueGeneratedOnAdd();
             entity.HasIndex(u => u.Email).IsUnique();
-            entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
-            entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.Email).HasMaxLength(256);
+            entity.Property(u => u.PasswordHash);
+            entity.Property(u => u.ExpirationDate);
+            entity.Property(u => u.UserStatus).IsRequired();
             entity.Property(u => u.RoleId).IsRequired().HasDefaultValue(1);
             entity.Property(u => u.AvatarId).IsRequired().HasDefaultValue(1);
             entity.HasMany(u => u.UserLimits)

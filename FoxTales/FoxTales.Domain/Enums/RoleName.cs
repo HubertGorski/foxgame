@@ -11,5 +11,7 @@ public enum RoleName
     [EnumMember(Value = "Super User")]
     SuperUser = 2,
     [EnumMember(Value = "Admin")]
-    Admin = 3
+    Admin = 3,
+    [EnumMember(Value = "TmpUser")]
+    TmpUser = 4
 }

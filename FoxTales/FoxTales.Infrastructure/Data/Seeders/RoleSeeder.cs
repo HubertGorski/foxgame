@@ -38,6 +38,11 @@ public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger)
                 {
                     RoleId = (int)RoleName.Admin,
                     Name = RoleName.Admin,
+                },
+                new()
+                {
+                    RoleId = (int)RoleName.TmpUser,
+                    Name = RoleName.TmpUser,
                 }
             };
 

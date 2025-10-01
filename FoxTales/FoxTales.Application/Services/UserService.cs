@@ -22,16 +22,29 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     private readonly IUserLimitService _userLimitService = userLimitService;
     private readonly IPsychLibraryService _psychLibraryService = psychLibraryService;
 
-    public async Task RegisterAsync(RegisterUserDto registerUserDto)
+    public async Task RegisterUser(RegisterUserDto registerUserDto)
     {
         User user = _mapper.Map<User>(registerUserDto);
         user.PasswordHash = _passwordHasher.HashPassword(user, registerUserDto.Password);
-        user.UserLimits = _userLimitService.CreateDefaultLimitsForUser(user.UserId);
         user.RoleId = (int)RoleName.User;
-
-        await _userRepository.AddAsync(user);
+        await Register(user);
     }
 
+    public async Task<int> RegisterTmpUser(RegisterTmpUserDto registerTmpUserDto)
+    {
+        User user = _mapper.Map<User>(registerTmpUserDto);
+        user.ExpirationDate = DateTime.UtcNow.AddHours(24); // TODO: zrobic joba czyszczacego i ustawiac 24 z configa.
+        user.RoleId = (int)RoleName.TmpUser;
+        await Register(user);
+        return user.UserId;
+    }
+
+    private async Task Register(User user)
+    {
+        user.UserLimits = _userLimitService.CreateDefaultLimitsForUser(user.UserId);
+        user.UserStatus = UserStatus.Active; // TODO: jest od razu aktywny, zmienić gdy będzie potwierdzanie konta.
+        await _userRepository.AddAsync(user);
+    }
     private async Task<TokensResponseDto> GetTokens(UserDto user)
     {
         TokensResponseDto tokens = _tokenGenerator.GetTokens(user);
@@ -39,12 +52,27 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         return tokens;
     }
 
-    public async Task<LoginUserResponseDto> Login(LoginUserDto loginUserDto)
+    public async Task<LoginUserResponseDto> LoginUser(LoginUserDto loginUserDto)
     {
-        User? user = await _userRepository.GetUserByEmail(loginUserDto.Email) ?? throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
-        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
-        if (result == PasswordVerificationResult.Failed) throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
+        User? user = await _userRepository.GetUser(loginUserDto.Email, null);
+        if (user == null || user.PasswordHash == null)
+            throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
 
+        PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginUserDto.Password);
+        if (result == PasswordVerificationResult.Failed)
+            throw new UnauthorizedException(DictHelper.Validation.InvalidEmailOrPassword);
+
+        return await Login(user);
+    }
+
+    public async Task<LoginUserResponseDto> LoginTmpUser(int UserId)
+    {
+        User? user = await _userRepository.GetUser(null, UserId) ?? throw new InvalidOperationException($"User '{UserId}' does not exist!");
+        return await Login(user);
+    }
+
+    private async Task<LoginUserResponseDto> Login(User user)
+    {
         UserDto userDto = _mapper.Map<UserDto>(user);
         _userLimitService.ApplyClosestThresholds(userDto.UserLimits);
 
@@ -89,6 +117,9 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
         if (tokenEntity.ExpiryDate <= DateTime.UtcNow || tokenEntity.IsRevoked)
             throw new UnauthorizedException("Invalid or expired refresh token");
+
+        if (tokenEntity.User.Role.Name == RoleName.TmpUser)
+            await _userRepository.DeleteUser(tokenEntity.User);
 
         await _userRepository.RevokeRefreshToken(tokenEntity);
     }

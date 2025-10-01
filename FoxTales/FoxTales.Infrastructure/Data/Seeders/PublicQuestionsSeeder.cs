@@ -34,9 +34,8 @@ public class PublicQuestionsSeeder(FoxTalesDbContext context, ILogger<PublicQues
             var newUser = new User
             {
                 Username = "Fox Templates",
-                Email = "fox-templates@wp.pl",
-                PasswordHash = "123",
                 AvatarId = 1,
+                UserStatus = UserStatus.Active,
                 RoleId = (int)RoleName.Admin
             };
 

@@ -1,5 +1,6 @@
 using FoxTales.Application.Exceptions;
 using FoxTales.Domain.Entities;
+using FoxTales.Domain.Enums;
 using FoxTales.Domain.Interfaces;
 using FoxTales.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,9 +32,9 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
-    public async Task<User?> GetUserByEmail(string email)
+    public async Task<User?> GetUser(string? email, int? userId)
     {
-        return await _db.Users
+        var query = _db.Users
             .AsNoTracking()
             .Include(u => u.Avatar)
             .Include(u => u.Role)
@@ -48,13 +49,20 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
             .Include(u => u.UserLimits)
                 .ThenInclude(ul => ul.LimitDefinition)
                 .ThenInclude(ut => ut.Thresholds)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .AsSplitQuery();
+
+        if (!string.IsNullOrEmpty(email))
+            return await query.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (userId != null)
+            return await query.FirstOrDefaultAsync(u => u.UserId == userId);
+
+        return null;
     }
 
     public async Task<bool> ExistsByUsernameAsync(string username)
     {
-        return await _db.Users.AnyAsync(u => u.Username == username);
+        return await _db.Users.AnyAsync(u => u.Username == username && u.UserStatus != UserStatus.Deleted);
     }
 
     public async Task<bool> ExistsByEmailAsync(string email)
@@ -82,6 +90,12 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
     public async Task RevokeRefreshToken(RefreshToken tokenEntity)
     {
         tokenEntity.IsRevoked = true;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteUser(User user)
+    {
+        user.UserStatus = UserStatus.Deleted;
         await _db.SaveChangesAsync();
     }
 

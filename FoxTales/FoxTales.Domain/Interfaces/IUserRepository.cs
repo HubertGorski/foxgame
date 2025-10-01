@@ -10,10 +10,11 @@ public interface IUserRepository
     Task<int> AddAsync(User user);
     Task<bool> ExistsByUsernameAsync(string username);
     Task<bool> ExistsByEmailAsync(string email);
-    Task<User?> GetUserByEmail(string email);
+    Task<User?> GetUser(string? email, int? userId);
     Task<int> StoreRefreshToken(RefreshToken refreshToken);
     Task<RefreshToken> GetRefreshTokenWithUser(string refreshToken);
     Task RevokeRefreshToken(RefreshToken tokenEntity);
+    Task DeleteUser(User user);
     Task ClearTokens();
     Task<ICollection<Avatar>> GetAllAvatars();
     Task<bool> SetUsername(string username, int userId);

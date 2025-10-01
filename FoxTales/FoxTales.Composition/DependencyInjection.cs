@@ -42,6 +42,7 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+        services.AddScoped<IValidator<RegisterTmpUserDto>, RegisterTmpUserDtoValidator>();
         services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
         services.AddScoped<IValidator<LoginUserDto>, LoginUserDtoValidator>();
         services.AddScoped<IValidator<SetUsernameRequestDto>, SetUsernameRequestDtoValidator>();

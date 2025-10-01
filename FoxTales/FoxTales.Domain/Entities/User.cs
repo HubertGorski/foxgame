@@ -10,8 +10,8 @@ public class User
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int UserId { get; set; }
     public required string Username { get; set; }
-    public required string Email { get; set; }
-    public required string PasswordHash { get; set; }
+    public string? Email { get; set; }
+    public string? PasswordHash { get; set; }
     public required int AvatarId { get; set; }
     public virtual Avatar Avatar { get; set; } = null!;
 
@@ -25,5 +25,7 @@ public class User
 
     public ICollection<Question> Questions { get; set; } = [];
     public ICollection<Catalog> Catalogs { get; set; } = [];
+    public required UserStatus UserStatus { get; set; }
+    public DateTime? ExpirationDate { get; set; }
 
 }
