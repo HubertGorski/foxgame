@@ -11,6 +11,11 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
 {
     private readonly FoxTalesDbContext _db = db;
 
+    public async Task SaveChangesAsync()
+    {
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<int> AddAsync(User user)
     {
         _db.Users.Add(user);
@@ -87,16 +92,13 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         return tokenEntity;
     }
 
-    public async Task RevokeRefreshToken(RefreshToken tokenEntity)
+    public async Task<List<RefreshToken>> GetInactiveTokens(DateTime now, TimeSpan accessTokenTtl) // TODO: wykluczyc graczy ktorzy maja aktywna sesje z psychHub!!!!
     {
-        tokenEntity.IsRevoked = true;
-        await _db.SaveChangesAsync();
-    }
+        var expiryLimit = now - accessTokenTtl;
 
-    public async Task DeleteUser(User user)
-    {
-        user.UserStatus = UserStatus.Deleted;
-        await _db.SaveChangesAsync();
+        return await _db.RefreshTokens
+            .Where(r => !r.IsRevoked && r.ExpiryDate > now && r.CreatedAt < expiryLimit)
+            .ToListAsync();
     }
 
     public async Task ClearTokens()

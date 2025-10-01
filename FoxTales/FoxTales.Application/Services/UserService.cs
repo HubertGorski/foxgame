@@ -105,7 +105,8 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
         if (tokenEntity.ExpiryDate <= DateTime.UtcNow || tokenEntity.IsRevoked)
             throw new UnauthorizedException("Invalid or expired refresh token");
 
-        await _userRepository.RevokeRefreshToken(tokenEntity);
+        tokenEntity.IsRevoked = true;
+        await _userRepository.SaveChangesAsync();
 
         UserDto userDto = _mapper.Map<UserDto>(tokenEntity.User);
         return await GetTokens(userDto);
@@ -119,14 +120,32 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             throw new UnauthorizedException("Invalid or expired refresh token");
 
         if (tokenEntity.User.Role.Name == RoleName.TmpUser)
-            await _userRepository.DeleteUser(tokenEntity.User);
+            tokenEntity.User.UserStatus = UserStatus.Deleted;
 
-        await _userRepository.RevokeRefreshToken(tokenEntity);
+        tokenEntity.IsRevoked = true;
+        await _userRepository.SaveChangesAsync();
     }
 
     public async Task ClearTokens()
     {
         await _userRepository.ClearTokens();
+    }
+
+    public async Task CleanupInactiveTokens()
+    {
+        TimeSpan accessTokenTtl = TimeSpan.FromMinutes(3); // TODO: ustawic w configu
+        List<RefreshToken> expiredTokens = await _userRepository.GetInactiveTokens(DateTime.UtcNow, accessTokenTtl);
+        
+
+        foreach (RefreshToken token in expiredTokens)
+        {
+            token.IsRevoked = true;
+            // if (token.User.Role.Name == RoleName.TmpUser) TODO: fix remove user
+                // token.User.UserStatus = UserStatus.Deleted;
+        }
+        
+
+        await _userRepository.SaveChangesAsync();
     }
 
     public async Task<bool> SetUsername(string username, int userId)

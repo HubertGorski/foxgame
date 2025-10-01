@@ -13,4 +13,5 @@ public interface IUserService
     Task ClearTokens();
     Task<bool> SetUsername(string username, int userId);
     Task<bool> SetAvatar(int avatarId, int userId);
+    Task CleanupInactiveTokens();
 }

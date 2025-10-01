@@ -34,9 +34,12 @@ public static class DependencyInjection
         services.AddScoped<IUserLimitService, UserLimitService>();
         services.AddScoped<IPsychLibraryService, PsychLibraryService>();
         services.AddScoped<IDylematyService, DylematyService>();
-        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IRoundService, RoundService>();
+
+        services.AddHostedService<TokenCleanupService>();
+        
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoundLogic, RoundLogic>();
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
