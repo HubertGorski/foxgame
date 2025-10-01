@@ -6,6 +6,9 @@ VPS_USER=$(grep -w VPS_USER ../../.env | cut -d '=' -f2)
 VPS_IP=$(grep -w VPS_IP ../../.env | cut -d '=' -f2)
 VPS_FOLDER=$(grep -w VPS_FOLDER ../../.env | cut -d '=' -f2)
 
+echo "Buduję nowy obraz $IMAGE_NAME ..."
+docker build -t $IMAGE_NAME ../../.
+
 echo "Zapisuję obraz $IMAGE_NAME do $TAR_FILE ..."
 docker save -o "$TAR_FILE" "$IMAGE_NAME"
 
@@ -40,7 +43,16 @@ ssh "$VPS_USER@$VPS_IP" "rm -f $VPS_FOLDER/$IMAGE_NAME.tar"
 echo "Usuwam plik tar lokalnie ..."
 rm -f "$TAR_FILE"
 
-echo "Uruchamiam Docker Compose na VPS ..."
+echo "Uruchamiam tylko SQL Server na VPS ..."
+ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose up -d sqlserver-foxtales"
+
+echo "Czekam aż SQL Server będzie gotowy..."
+sleep 20
+
+echo "Wykonuję migracje bazy danych..."
+ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose run --rm --entrypoint dotnet backend-foxtales FoxTales.Api.dll ef database update"
+
+echo "Uruchamiam resztę serwisów..."
 ssh "$VPS_USER@$VPS_IP" "cd $VPS_FOLDER && docker-compose up -d"
 
-echo "✅ Deploy zakończony! Twój backend powinien działać."
+echo "✅ Deploy zakończony!"
