@@ -97,6 +97,8 @@ public class EfUserRepository(FoxTalesDbContext db) : IUserRepository
         var expiryLimit = now - accessTokenTtl;
 
         return await _db.RefreshTokens
+            .Include(rt => rt.User)
+            .ThenInclude(u => u.Role)
             .Where(r => !r.IsRevoked && r.ExpiryDate > now && r.CreatedAt < expiryLimit)
             .ToListAsync();
     }

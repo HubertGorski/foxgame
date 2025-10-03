@@ -28,7 +28,7 @@ public class TokenCleanupService(IServiceProvider serviceProvider, ILogger<Token
                 _logger.LogError(ex, "[TokenCleanupService]: {Message}", ex.Message);
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // TODO: z configa wziac
+            await Task.Delay(TimeSpan.FromMinutes(30), stoppingToken); // TODO: z configa wziac
         }
     }
 }
