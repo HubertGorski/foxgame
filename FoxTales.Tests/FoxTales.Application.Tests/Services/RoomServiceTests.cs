@@ -1,11 +1,11 @@
-using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
 using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
+using FoxTales.Application.Services.Stores;
 using FoxTales.Application.Tests.Common;
-using FoxTales.Domain.Enums;
 using MediatR;
 using Moq;
 
@@ -14,16 +14,26 @@ namespace FoxTales.Application.Tests.Services;
 public class RoomServiceTests : BaseTest
 {
     private readonly IRoomService _service;
+    private readonly RoomStore _store;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRoundService> _roundServiceMock;
 
     public RoomServiceTests()
     {
-        RoomService.ClearRoomsForTest();
-
+        _store = new RoomStore();
         _mediatorMock = new Mock<IMediator>();
         _roundServiceMock = new Mock<IRoundService>();
-        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object);
+        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object, _store);
+    }
+
+    private void AddRoomForTest(RoomDto room)
+    {
+        _store.SetRoom(room.Code, room);
+    }
+
+    private ConcurrentDictionary<string, RoomDto> GetRoomsForTest()
+    {
+        return _store.GetAllRoomsWithCodes();
     }
 
     [Fact]
@@ -31,7 +41,7 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         RoomDto result = _service.GetRoomByCode(GameCode);
@@ -73,7 +83,7 @@ public class RoomServiceTests : BaseTest
         Assert.False(owner.IsReady);
         Assert.Contains(owner, room.Users);
         Assert.NotNull(room.Code);
-        Assert.True(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        Assert.True(GetRoomsForTest().ContainsKey(room.Code));
     }
 
     [Fact]
@@ -81,8 +91,8 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto oldRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(oldRoom);
-        ICollection<string> oldRooms = RoomService.GetRoomsForTest().Keys;
+        AddRoomForTest(oldRoom);
+        ICollection<string> oldRooms = GetRoomsForTest().Keys;
 
         RoomDto newRoom = CreateTestRoom(null, OwnerId, OwnerName, OwnerConnectionId);
 
@@ -90,7 +100,7 @@ public class RoomServiceTests : BaseTest
         await _service.CreateRoom(newRoom);
 
         // Then
-        ICollection<string> currentRooms = RoomService.GetRoomsForTest().Keys;
+        ICollection<string> currentRooms = GetRoomsForTest().Keys;
         Assert.NotNull(newRoom.Code);
 
         Assert.Contains(oldRoom.Code, oldRooms);
@@ -115,7 +125,7 @@ public class RoomServiceTests : BaseTest
             Users = [owner, user],
             Code = GameCode
         };
-        RoomService.AddRoomForTest(oldRoom);
+        AddRoomForTest(oldRoom);
 
         RoomDto newRoom = CreateTestRoom(null, UserId, UserName, UserConnectionId, []);
 
@@ -193,7 +203,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId, [owner, user]);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId, [owner]);
 
@@ -225,7 +235,7 @@ public class RoomServiceTests : BaseTest
         // Given
         string passwordTest = "test123";
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         updatedRoom.Password = passwordTest;
@@ -235,7 +245,7 @@ public class RoomServiceTests : BaseTest
         await _service.EditRoom(updatedRoom);
 
         // Then
-        var currentRoom = RoomService.GetRoomsForTest().First();
+        var currentRoom = GetRoomsForTest().First();
         Assert.NotNull(currentRoom.Value.Password);
         Assert.Contains(currentRoom.Value.Password, passwordTest);
 
@@ -251,7 +261,7 @@ public class RoomServiceTests : BaseTest
         // Given
         string passwordTest = "test123";
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         RoomDto updatedRoom = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         updatedRoom.Password = passwordTest;
@@ -260,7 +270,7 @@ public class RoomServiceTests : BaseTest
         await _service.EditRoom(updatedRoom);
 
         // Then
-        var currentRoom = RoomService.GetRoomsForTest().First();
+        var currentRoom = GetRoomsForTest().First();
         Assert.NotNull(currentRoom.Value.Password);
         Assert.Contains(currentRoom.Value.Password, passwordTest);
 
@@ -274,7 +284,7 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -300,7 +310,7 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.SetStatus(GameCode, OwnerId, true);
@@ -316,7 +326,7 @@ public class RoomServiceTests : BaseTest
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
         owner.IsReady = true;
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.SetStatus(GameCode, OwnerId, false);
@@ -332,7 +342,7 @@ public class RoomServiceTests : BaseTest
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
         owner.IsReady = true;
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.SetStatus(GameCode, OwnerId, true);
@@ -348,7 +358,7 @@ public class RoomServiceTests : BaseTest
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         PlayerDto owner = room.Users.Single(u => u.UserId == OwnerId);
         owner.IsReady = false;
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.SetStatus(GameCode, OwnerId, false);
@@ -366,7 +376,7 @@ public class RoomServiceTests : BaseTest
         if (addRoom)
         {
             RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-            RoomService.AddRoomForTest(room);
+            AddRoomForTest(room);
         }
 
         // When
@@ -383,7 +393,7 @@ public class RoomServiceTests : BaseTest
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Questions = [Library["ownerQuestion"]];
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.StartGame(GameCode, OwnerConnectionId);
@@ -401,7 +411,7 @@ public class RoomServiceTests : BaseTest
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.IsPublic = true;
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.RefreshPublicRoomsList();
@@ -415,7 +425,7 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.RefreshPublicRoomsList();
@@ -440,7 +450,7 @@ public class RoomServiceTests : BaseTest
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -463,13 +473,13 @@ public class RoomServiceTests : BaseTest
             Users = [owner, user],
             Code = GameCode
         };
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.LeaveRoom(GameCode, OwnerId);
 
         // Then
-        Assert.False(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        Assert.False(GetRoomsForTest().ContainsKey(room.Code));
         _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == owner), default), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == user), default), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.Is<RoomClosedEvent>(e => e.PlayersInRoom.Contains(user)), default), Times.Once);
@@ -490,13 +500,13 @@ public class RoomServiceTests : BaseTest
             Users = [owner, user],
             Code = GameCode
         };
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.LeaveRoom(GameCode, UserId);
 
         // Then
-        Assert.True(RoomService.GetRoomsForTest().ContainsKey(room.Code));
+        Assert.True(GetRoomsForTest().ContainsKey(room.Code));
         _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == owner), default), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.Is<PlayerLeftRoomEvent>(e => e.Code == room.Code && e.PlayerToRemove == user), default), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Never);
@@ -600,13 +610,13 @@ public class RoomServiceTests : BaseTest
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Questions = oldQuestions;
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.AddQuestionsToGame(GameCode, playerId, newQuestions);
 
         // Then
-        List<QuestionDto> currentQuestions = RoomService.GetRoomsForTest().Values.First().Questions;
+        List<QuestionDto> currentQuestions = GetRoomsForTest().Values.First().Questions;
 
         Assert.Equal(expectedQuestions.Count, currentQuestions.Count);
         Assert.All(expectedQuestions, q => Assert.Contains(q, currentQuestions));
@@ -636,10 +646,10 @@ public class RoomServiceTests : BaseTest
         owner.IsReady = true;
 
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         RoomDto anotherRoom = CreateTestRoom(AnotherGameCode, UserId, UserName, UserConnectionId);
-        RoomService.AddRoomForTest(anotherRoom);
+        AddRoomForTest(anotherRoom);
 
         // When
         await _service.JoinRoom(owner, AnotherGameCode, null, null);
@@ -650,8 +660,8 @@ public class RoomServiceTests : BaseTest
         Assert.DoesNotContain(owner, room.Users);
         Assert.NotNull(room.Code);
         Assert.NotNull(anotherRoom.Code);
-        Assert.False(RoomService.GetRoomsForTest().ContainsKey(room.Code));
-        Assert.True(RoomService.GetRoomsForTest().ContainsKey(anotherRoom.Code));
+        Assert.False(GetRoomsForTest().ContainsKey(room.Code));
+        Assert.True(GetRoomsForTest().ContainsKey(anotherRoom.Code));
 
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RoomClosedEvent>(), default), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.Is<JoinRoomEvent>(e => e.ConnectionId == OwnerConnectionId && e.Code == AnotherGameCode), default), Times.Once);
@@ -668,10 +678,10 @@ public class RoomServiceTests : BaseTest
 
         user_2.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         RoomDto anotherRoom = CreateTestRoom(AnotherGameCode, UserId, UserName, UserConnectionId, [user_2, user]);
-        RoomService.AddRoomForTest(anotherRoom);
+        AddRoomForTest(anotherRoom);
 
         // When
         await _service.JoinRoom(user_2, GameCode, null, null);
@@ -694,7 +704,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, GameCode, null, null);
@@ -715,7 +725,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, AnotherGameCode, null, null);
@@ -735,7 +745,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, null, null);
@@ -756,7 +766,7 @@ public class RoomServiceTests : BaseTest
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Password = "OK PASS";
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, "NOK PASS", OwnerId);
@@ -777,7 +787,7 @@ public class RoomServiceTests : BaseTest
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Password = "OK PASS";
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, null, OwnerId);
@@ -798,7 +808,7 @@ public class RoomServiceTests : BaseTest
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Password = "OK PASS";
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, "OK PASS", OwnerId);
@@ -819,7 +829,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, null, OwnerId);
@@ -840,7 +850,7 @@ public class RoomServiceTests : BaseTest
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         user.IsReady = true;
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        RoomService.AddRoomForTest(room);
+        AddRoomForTest(room);
 
         // When
         await _service.JoinRoom(user, null, "OK PASS", OwnerId);

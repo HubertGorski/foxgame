@@ -45,8 +45,8 @@ public class RoundServiceTests : BaseTest
     {
         // GIVEN
         RoomDto room = CreateTestRoom();
-        room.Questions = [Library["ownerQuestion"]];
-        _roundLogicMock.Setup(r => r.GetNewCurrentQuestionWithSelectedPlayer(room)).Returns(Library["ownerQuestion"]);
+        room.Questions = [CreateTestQuestion()];
+        _roundLogicMock.Setup(r => r.GetNewCurrentQuestionWithSelectedPlayer(room)).Returns(CreateTestQuestion());
 
         // WHEN
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>

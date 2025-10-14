@@ -6,6 +6,7 @@ using FoxTales.Application.Services.Logics;
 using FoxTales.Application.Tests.Common;
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
+using FoxTales.Application.Services.Stores;
 
 namespace FoxTales.Application.Tests.Services;
 
@@ -13,6 +14,7 @@ public class RoomServiceIntegrationTests : BaseTest
 {
     private readonly RoomService _roomService;
     private readonly RoundService _roundService;
+    private readonly RoomStore _store;
     private readonly RoundLogic _roundLogic;
     private readonly Mock<IMediator> _mediatorMock;
 
@@ -20,11 +22,11 @@ public class RoomServiceIntegrationTests : BaseTest
 
     public RoomServiceIntegrationTests()
     {
-        RoomService.ClearRoomsForTest();
+        _store = new RoomStore();
         _mediatorMock = new Mock<IMediator>();
         _roundLogic = new RoundLogic();
         _roundService = new RoundService(_mediatorMock.Object, _roundLogic);
-        _roomService = new RoomService(_mediatorMock.Object, _roundService);
+        _roomService = new RoomService(_mediatorMock.Object, _roundService, _store);
     }
 
     [Fact]
@@ -42,12 +44,12 @@ public class RoomServiceIntegrationTests : BaseTest
 
         string? code = room.Code;
         code.Should().NotBeNull();
-        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(1);
+        _store.GetRoomOrDefault(code).Users.Should().HaveCount(1);
 
         // Join second player by code
         PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
         await _roomService.JoinRoom(user, code, null, null);
-        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(2);
+        _store.GetRoomOrDefault(code).Users.Should().HaveCount(2);
 
         // Set room public
         await _roomService.EditRoom(new RoomDto
@@ -61,7 +63,7 @@ public class RoomServiceIntegrationTests : BaseTest
         // Join third player to public room without password
         PlayerDto user2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
         await _roomService.JoinRoom(user2, null, null, OwnerId);
-        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(3);
+        _store.GetRoomOrDefault(code).Users.Should().HaveCount(3);
 
         // Set room public with password
         await _roomService.EditRoom(new RoomDto
@@ -76,7 +78,7 @@ public class RoomServiceIntegrationTests : BaseTest
         // Join fourth player with password
         PlayerDto user3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
         await _roomService.JoinRoom(user3, null, TestPassword, OwnerId);
-        RoomService.GetRoomsForTest()[code].Users.Should().HaveCount(4);
+        _store.GetRoomOrDefault(code).Users.Should().HaveCount(4);
 
         // Add questions
         List<QuestionDto> ownerQuestions =
@@ -85,10 +87,10 @@ public class RoomServiceIntegrationTests : BaseTest
             Library["ownerQuestion_2"]
         ];
         await _roomService.AddQuestionsToGame(code, OwnerId, ownerQuestions);
-        RoomService.GetRoomsForTest()[code].Questions.Should().Equal(ownerQuestions);
+        _store.GetRoomOrDefault(code).Questions.Should().Equal(ownerQuestions);
 
         await _roomService.AddQuestionsToGame(code, UserId, [Library["userQuestion"]]);
-        RoomService.GetRoomsForTest()[code].Questions.Should().Equal(ownerQuestions.Append(Library["userQuestion"]));
+        _store.GetRoomOrDefault(code).Questions.Should().Equal(ownerQuestions.Append(Library["userQuestion"]));
 
         // Players mark ready
         await _roomService.SetStatus(code, UserId, true);
@@ -97,7 +99,7 @@ public class RoomServiceIntegrationTests : BaseTest
 
         // Start game
         await _roomService.StartGame(code, OwnerConnectionId);
-        RoomDto activeRoom = RoomService.GetRoomsForTest()[code];
+        RoomDto activeRoom = _store.GetRoomOrDefault(code);
         activeRoom.IsGameStarted.Should().BeTrue();
         activeRoom.Users.Should().OnlyContain(u => !u.IsReady);
 
@@ -121,7 +123,7 @@ public class RoomServiceIntegrationTests : BaseTest
 
         // Reveal results
         await _roundService.MarkAllUsersUnreadyIfOwner(activeRoom, OwnerConnectionId);
-        var users = RoomService.GetRoomsForTest()[code].Users;
+        var users = _store.GetRoomOrDefault(code).Users;
 
         users.Should().OnlyContain(u => !u.IsReady);
 
@@ -162,10 +164,10 @@ public class RoomServiceIntegrationTests : BaseTest
         await _roomService.SetStatus(code, UserId_3, true);
 
         await _roundService.SetNewRound(activeRoom, OwnerConnectionId);
-        RoomService.GetRoomsForTest()[code].Users.Should().OnlyContain(u => !u.IsReady);
+        _store.GetRoomOrDefault(code).Users.Should().OnlyContain(u => !u.IsReady);
 
         // Owner leaves -> room closes
         await _roomService.LeaveRoom(code, OwnerId);
-        RoomService.GetRoomsForTest().Should().NotContainKey(code);
+        _store.GetAllRoomsWithCodes().Should().NotContainKey(code);
     }
 }

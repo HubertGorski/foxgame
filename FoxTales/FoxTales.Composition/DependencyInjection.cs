@@ -23,6 +23,8 @@ using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
 using FoxTales.Application.Interfaces.Logics;
 using FoxTales.Application.Services.Logics;
+using FoxTales.Application.Interfaces.Stores;
+using FoxTales.Application.Services.Stores;
 
 namespace FoxTales.Composition;
 
@@ -36,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IDylematyService, DylematyService>();
         services.AddScoped<IRoomService, RoomService>();
         services.AddScoped<IRoundService, RoundService>();
+        services.AddSingleton<IRoomStore, RoomStore>();
 
         services.AddHostedService<TokenCleanupService>();
 

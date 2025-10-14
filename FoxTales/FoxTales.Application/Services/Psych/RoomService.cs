@@ -1,42 +1,33 @@
 using FoxTales.Application.DTOs.Psych;
-using GameCode = System.String;
 using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces.Psych;
 using MediatR;
 using FoxTales.Application.Events;
 using FoxTales.Application.DTOs.User;
-using System.Collections.Concurrent;
+using FoxTales.Application.Interfaces.Stores;
 
 namespace FoxTales.Application.Services.Psych;
 
-public class RoomService(IMediator mediator, IRoundService roundService) : IRoomService
+public class RoomService(IMediator mediator, IRoundService roundService, IRoomStore roomStore) : IRoomService
 {
     private readonly IRoundService _roundService = roundService;
     private readonly IMediator _mediator = mediator;
-    private static readonly ConcurrentDictionary<string, RoomDto> Rooms = new(); // TODO: usunac static i trzymac te informacje w zewnetrznej bazie.
-
-    internal static void ClearRoomsForTest() => Rooms.Clear();
-    internal static void AddRoomForTest(RoomDto room)
-        => Rooms[string.IsNullOrWhiteSpace(room.Code) ? throw new InvalidOperationException("Room code cannot be null or empty") : room.Code] = room;
-    internal static ConcurrentDictionary<string, RoomDto> GetRoomsForTest() => Rooms;
+    private readonly IRoomStore _roomStore = roomStore;
 
     public RoomDto GetRoomByCode(string gameCode)
     {
-        if (!Rooms.TryGetValue(gameCode, out RoomDto? room) || room == null)
-            throw new InvalidOperationException($"Code '{gameCode}' does not exist");
-
-        return room;
+        return _roomStore.GetRoomByCode(gameCode);
     }
 
     public async Task CreateRoom(RoomDto room)
     {
-        room.Code = RoomCodeGenerator.GenerateUniqueCode(code => !Rooms.ContainsKey(code));
-        await RemoveAllRoomsByOwnerId(room.Owner.UserId); // TODO: dodac do logow bo to niepożądana sytuacja
-        await RemoveUserFromAllRooms(room.Owner.UserId); // TODO: dodac do logow bo to niepożądana sytuacja
+        room.Code = RoomCodeGenerator.GenerateUniqueCode(code => !_roomStore.RoomExists(code));
+        await RemoveAllRoomsByOwnerId(room.Owner.UserId);
+        await RemoveUserFromAllRooms(room.Owner.UserId);
 
         room.Owner.IsReady = false;
         room.Users.Add(room.Owner);
-        Rooms.TryAdd(room.Code, room);
+        _roomStore.SetRoom(room.Code, room);
 
         string connectionId = GetPlayerConnectionId(room.Owner);
         await _mediator.Publish(new JoinRoomEvent(connectionId, room.Code));
@@ -55,13 +46,14 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
         if (room.Users.Count != currentRoom.Users.Count)
             throw new InvalidOperationException($"The number of players is not correct in '{room.Code}' room! (Edit Room)");
 
-        Rooms[room.Code] = room;
+        _roomStore.SetRoom(room.Code, room);
 
         if (room.IsPublic)
             await RefreshPublicRoomsList();
 
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
+
     public async Task SetStatus(string gameCode, int playerId, bool status)
     {
         RoomDto room = GetRoomByCode(gameCode);
@@ -86,7 +78,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 
     public async Task RefreshPublicRoomsList()
     {
-        IEnumerable<RoomDto> publicRooms = Rooms.Where(r => r.Value.IsPublic && !r.Value.IsGameStarted).Select(r => r.Value);
+        IEnumerable<RoomDto> publicRooms = _roomStore.GetAllRooms().Where(r => r.IsPublic && !r.IsGameStarted);
         await _mediator.Publish(new RefreshPublicRoomsListEvent(publicRooms));
     }
 
@@ -144,7 +136,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 
     private async Task RemoveAllRoomsByOwnerId(int ownerId)
     {
-        var codes = Rooms.Values
+        var codes = _roomStore.GetAllRooms()
             .Where(r => r.Owner.UserId == ownerId && r.Code is not null)
             .Select(r => r.Code!)
             .ToList();
@@ -154,7 +146,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
 
     private async Task RemoveUserFromAllRooms(int userId)
     {
-        var rooms = Rooms.Values
+        var rooms = _roomStore.GetAllRooms()
             .Where(r => r.Users.Any(u => u.UserId == userId) && r.Code is not null)
             .ToList();
 
@@ -164,7 +156,7 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     private async Task RemoveRoom(string gameCode)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        Rooms.TryRemove(gameCode, out var _);
+        _roomStore.RemoveRoom(gameCode);
         await RefreshPublicRoomsList();
         await _mediator.Publish(new RoomClosedEvent(gameCode, [.. room.Users]));
     }
@@ -189,8 +181,8 @@ public class RoomService(IMediator mediator, IRoundService roundService) : IRoom
     private async Task<RoomDto?> VerifyRoomAccessGetRoom(string connectionId, string? gameCode, string? password, int? ownerId)
     {
         RoomDto? selectedRoom = ownerId != null
-        ? Rooms.Values.FirstOrDefault(r => (r.Owner.UserId == ownerId) && (r.Password == password || r.Password == null))
-        : Rooms.GetValueOrDefault(gameCode ?? "");
+            ? _roomStore.GetAllRooms().FirstOrDefault(r => (r.Owner.UserId == ownerId) && (r.Password == password || r.Password == null))
+            : _roomStore.GetRoomOrDefault(gameCode ?? "");
 
         if (selectedRoom == null)
         {
