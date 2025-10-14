@@ -38,7 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IRoundService, RoundService>();
 
         services.AddHostedService<TokenCleanupService>();
-        
+
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoundLogic, RoundLogic>();
 

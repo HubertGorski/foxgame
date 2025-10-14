@@ -3,7 +3,7 @@ using FoxTales.Application.DTOs.User;
 
 namespace FoxTales.Application.Validators.User;
 
-public class LoginUserDtoValidator  : AbstractValidator<LoginUserDto>
+public class LoginUserDtoValidator : AbstractValidator<LoginUserDto>
 {
     public LoginUserDtoValidator()
     {

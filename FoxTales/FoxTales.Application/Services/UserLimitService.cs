@@ -12,7 +12,7 @@ public class UserLimitService(IFoxGameRepository foxGameRepository, IMapper mapp
 {
     private readonly IFoxGameRepository _foxGameRepository = foxGameRepository;
     private readonly IMapper _mapper = mapper;
-    
+
     public async Task<ICollection<FoxGameDto>> GetAllFoxGames()
     {
         ICollection<FoxGame> games = await _foxGameRepository.GetAllFoxGames();

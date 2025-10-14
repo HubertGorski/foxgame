@@ -135,7 +135,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     {
         TimeSpan accessTokenTtl = TimeSpan.FromMinutes(15); // TODO: ustawic w configu
         List<RefreshToken> expiredTokens = await _userRepository.GetInactiveTokens(DateTime.UtcNow, accessTokenTtl);
-        
+
 
         foreach (RefreshToken token in expiredTokens)
         {
@@ -143,7 +143,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             if (token.User.Role.Name == RoleName.TmpUser)
                 token.User.UserStatus = UserStatus.Deleted;
         }
-        
+
 
         await _userRepository.SaveChangesAsync();
     }

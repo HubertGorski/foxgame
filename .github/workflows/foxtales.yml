@@ -33,12 +33,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Check code formatting
-        run: |
-          dotnet format FoxTales/FoxTales.Api/FoxTales.Api.csproj --verify-no-changes
-          dotnet format FoxTales/FoxTales.Application/FoxTales.Application.csproj --verify-no-changes
-          dotnet format FoxTales/FoxTales.Composition/FoxTales.Composition.csproj --verify-no-changes
-          dotnet format FoxTales/FoxTales.Domain/FoxTales.Domain.csproj --verify-no-changes
-          dotnet format FoxTales/FoxTales.Infrastructure/FoxTales.Infrastructure.csproj --verify-no-changes
+        run: dotnet format HubWorkspace.sln --verify-no-changes --verbosity minimal
 
       - name: Build and run tests
         run: |

@@ -7,10 +7,10 @@ namespace FoxTales.Application.Mappings;
 public class DylematyCardProfile : Profile
 {
     public DylematyCardProfile()
-    {        
+    {
         CreateMap<DylematyCard, DylematyCardDto>()
             .ReverseMap();
-            
+
         CreateMap<CreateDylematyCardDto, DylematyCard>()
             .ReverseMap();
     }
