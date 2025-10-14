@@ -1,0 +1,38 @@
+name: FoxTales CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  DOTNET_VERSION: 9.0.x
+
+jobs:
+  test:
+    name: Tests and Linter
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dotnet tools
+        run: dotnet tool restore
+
+      - name: Check code formatting
+        run: |
+          dotnet format FoxTales/FoxTales.Api/FoxTales.Api.csproj --verify-no-changes
+          dotnet format FoxTales/FoxTales.Application/FoxTales.Application.csproj --verify-no-changes
+          dotnet format FoxTales/FoxTales.Composition/FoxTales.Composition.csproj --verify-no-changes
+          dotnet format FoxTales/FoxTales.Domain/FoxTales.Domain.csproj --verify-no-changes
+          dotnet format FoxTales/FoxTales.Infrastructure/FoxTales.Infrastructure.csproj --verify-no-changes
+
+      - name: Build and run tests
+        run: |
+          dotnet restore FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj
+          dotnet build FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj --configuration $BUILD_CONFIG --no-restore
+          dotnet test FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj --configuration $BUILD_CONFIG --no-build --verbosity normal
