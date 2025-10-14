@@ -20,6 +20,9 @@ jobs:
       - name: Prepare .NET install path
         run: |
           mkdir -p $HOME/.dotnet
+          export DOTNET_ROOT=$GITHUB_WORKSPACE/.dotnet
+          export DOTNET_INSTALL_DIR=$GITHUB_WORKSPACE/.dotnet
+          export DOTNET_CLI_HOME=$GITHUB_WORKSPACE/.dotnet
           echo "DOTNET_ROOT=$HOME/.dotnet" >> $GITHUB_ENV
           echo "DOTNET_INSTALL_DIR=$HOME/.dotnet" >> $GITHUB_ENV
           echo "$HOME/.dotnet" >> $GITHUB_PATH
@@ -40,3 +43,9 @@ jobs:
           dotnet restore FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj
           dotnet build FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj --configuration $BUILD_CONFIG --no-restore
           dotnet test FoxTales.Tests/FoxTales.Application.Tests/FoxTales.Application.Tests.csproj --configuration $BUILD_CONFIG --no-build --verbosity normal
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf $HOME/.dotnet
+          find $GITHUB_WORKSPACE/FoxTales -type d \( -name bin -o -name obj \) -exec rm -rf {} +
