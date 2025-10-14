@@ -16,11 +16,7 @@ public class LoggingNotificationPublisher(ILogger<LoggingNotificationPublisher> 
 
         var payload = JsonConvert.SerializeObject(notification, Formatting.None);
 
-        _logger.LogInformation(
-            "Publishing event {EventName} with payload {Payload}", 
-            eventName, 
-            payload
-        );
+        _logger.LogInformation("Publishing event {EventName} with payload {Payload}", eventName, payload);
 
         foreach (var handler in handlerExecutors)
         {
