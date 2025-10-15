@@ -7,11 +7,11 @@
 - [Overview](#-overview)
 - [Gameplay](#-gameplay)
 - [Guest Mode](#-guest-mode)
-- [Room Options](#-room-options)
+- [Room Options](#%EF%B8%8F-room-options)
 - [Example Scenarios](#-example-scenarios)
 - [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Author](#-author)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
+- [Author](#%E2%80%8D-author)
 
 ## 🎮 Overview
 
@@ -60,19 +60,19 @@ Anna and Mark are heading to Chris's Star Wars themed house party.
 
 #### Preparation:
 - 🪐 Anna creates a _"Star Wars"_ category with the question:
-"If **** had a lightsaber, what would they use it for?"
+_"If **** had a lightsaber, what would they use it for?"_
 - 🎉 Mark creates a _"Party Time"_ category with the question:
-"**** wins a million dollars! What do they do with it?"
+_"**** wins a million dollars! What do they do with it?"_
 
 #### At the Party:
 - 🏠 Chris creates a game room with the option to allow custom question categories
-- 👥 Anna adds her "Star Wars" category to the room
-- 👥 Mark adds his "Party Time" category to the room
+- 👥 Anna adds her _"Star Wars"_ category to the room
+- 👥 Mark adds his _"Party Time"_ category to the room
 - ⚙️ Chris disables both public questions and his own personal categories
 
 #### The Game:
-- 🎲 Questions are randomly drawn from both "Party Time" and "Star Wars" categories
-- 🎯 First drawn question: "Chris wins a million dollars! What do they do with it?"
+- 🎲 Questions are randomly drawn from both _"Party Time"_ and _"Star Wars"_ categories
+- 🎯 First drawn question: _"Chris wins a million dollars! What do they do with it?"_
 
 
 ## ✨ Features
@@ -92,7 +92,6 @@ Anna and Mark are heading to Chris's Star Wars themed house party.
 ⚡ **Real-time**	Instant gameplay experience
 
 ## 🛠️ Tech Stack
-- **Frontend:** Vue3
 - **Backend:** .NET 9, C#
 - **Architecture:**	Clean Architecture (Onion)
 - **Communication:** SignalR + MediatR
