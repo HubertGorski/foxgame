@@ -53,9 +53,7 @@ public static partial class DependencyInjection
     private static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         JwtSettings jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
-
-        Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
-        jwtSettings.Key ??= Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new ConfigException("Missing JWT key (set via environment variable JWT_KEY)");
+        jwtSettings.Key ??= JwtKeyProvider.GetJwtKey(configuration) ?? throw new ConfigException("Missing JWT key (set via environment variable JWT_KEY)");
 
         services.AddSingleton(jwtSettings);
 

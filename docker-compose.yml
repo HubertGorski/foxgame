@@ -20,6 +20,7 @@ services:
     container_name: backend-foxtales
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - JWT_KEY=${JWT_KEY}
       - ConnectionStrings:DefaultConnection=${ConnectionString}
       - ASPNETCORE_URLS=http://+:5161
     ports:
