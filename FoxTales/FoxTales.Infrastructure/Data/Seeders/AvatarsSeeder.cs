@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> logger)
+public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> logger) : ISeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<AvatarsSeeder> _logger = logger;
@@ -16,7 +16,6 @@ public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> log
             _logger.LogInformation("Start avatars seeding");
             IEnumerable<Avatar> avatars = GetAvatars();
             await _context.Avatars.AddRangeAsync(avatars);
-            await _context.SaveChangesAsync();
         }
     }
 

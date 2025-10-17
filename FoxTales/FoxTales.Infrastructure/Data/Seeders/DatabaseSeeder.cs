@@ -2,19 +2,13 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, CatalogTypesSeeder catalogTypesSeeder, AchievementSeeder achievementSeeder, RoleSeeder roleSeeder, FoxGamesSeeder foxGamesSeeder, LimitThresholdSeeder limitThresholdSeeder, AvatarsSeeder avatarSeeder, PublicQuestionsSeeder publicQuestionsSeeder)
+public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> logger, IEnumerable<ISeeder> seeders)
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<DatabaseSeeder> _logger = logger;
-    private readonly AchievementSeeder _achievementSeeder = achievementSeeder;
-    private readonly FoxGamesSeeder _foxGamesSeeder = foxGamesSeeder;
-    private readonly RoleSeeder _roleSeeder = roleSeeder;
-    private readonly LimitThresholdSeeder _limitThresholdSeeder = limitThresholdSeeder;
-    private readonly AvatarsSeeder _avatarSeeder = avatarSeeder;
-    private readonly CatalogTypesSeeder _catalogTypesSeeder = catalogTypesSeeder;
-    private readonly PublicQuestionsSeeder _publicQuestionsSeeder = publicQuestionsSeeder;
+    private readonly IEnumerable<ISeeder> _seeders = seeders;
 
-    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false, bool clearQuestions = false)
+    public async Task SeedAsync(bool clearDatabase = false, bool deleteDatabase = false)
     {
         if (!await _context.Database.CanConnectAsync())
         {
@@ -27,34 +21,26 @@ public class DatabaseSeeder(FoxTalesDbContext context, ILogger<DatabaseSeeder> l
             await _context.Database.EnsureDeletedAsync();
         }
 
+        if (!clearDatabase)
+            return;
 
-        if (clearDatabase)
+        _logger.LogInformation("Clearing database before seeding...");
+
+        foreach (var seeder in _seeders.OfType<IClearableSeeder>())
         {
-            _logger.LogInformation("Clearing database before seeding...");
-            await ClearDatabaseAsync();
-        }
+            _logger.LogDebug("Clearing data using {Seeder}", seeder.GetType().Name);
+            await seeder.ClearAsync();
 
-        await _achievementSeeder.SeedAsync();
-        await _roleSeeder.SeedAsync();
-        await _foxGamesSeeder.SeedAsync();
-        await _limitThresholdSeeder.SeedAsync();
-        await _avatarSeeder.SeedAsync();
-        await _catalogTypesSeeder.SeedAsync();
-        await _publicQuestionsSeeder.SeedAsync(clearQuestions);
+        }
+        await _context.SaveChangesAsync();
+
+        foreach (var seeder in _seeders)
+        {
+            _logger.LogDebug("Seeding data using {Seeder}", seeder.GetType().Name);
+            await seeder.SeedAsync();
+        }
+        await _context.SaveChangesAsync();
 
         _logger.LogInformation("Database seeding completed successfully");
-    }
-
-    private async Task ClearDatabaseAsync()
-    {
-        _context.Achievements.RemoveRange(_context.Achievements);
-        _context.Roles.RemoveRange(_context.Roles);
-        _context.FoxGames.RemoveRange(_context.FoxGames);
-        _context.LimitThresholds.RemoveRange(_context.LimitThresholds);
-        _context.LimitDefinitions.RemoveRange(_context.LimitDefinitions);
-        _context.Avatars.RemoveRange(_context.Avatars);
-        _context.CatalogTypes.RemoveRange(_context.CatalogTypes);
-
-        await _context.SaveChangesAsync();
     }
 }

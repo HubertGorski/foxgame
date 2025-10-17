@@ -10,8 +10,8 @@ public class Question
     public required Language Language { get; set; }
     public DateTime CreatedDate { get; set; }
 
-    public int OwnerId { get; set; }
-    public virtual User Owner { get; set; } = null!;
+    public int? OwnerId { get; set; }
+    public virtual User? Owner { get; set; } = null!;
 
     public ICollection<Catalog> Catalogs { get; set; } = [];
 }

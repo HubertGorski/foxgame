@@ -29,7 +29,6 @@ public class EfPsychLibraryRepository(FoxTalesDbContext db) : IPsychLibraryRepos
         if (catalog == null)
             return false;
 
-        catalog.Questions.Clear();
         _db.Catalogs.Remove(catalog);
         await _db.SaveChangesAsync();
         return true;

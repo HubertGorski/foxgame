@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger)
+public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger) : ISeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<RoleSeeder> _logger = logger;
@@ -16,7 +16,6 @@ public class RoleSeeder(FoxTalesDbContext context, ILogger<RoleSeeder> logger)
             _logger.LogInformation("Start roles seeding");
             IEnumerable<Role> roles = GetRoles();
             await _context.Roles.AddRangeAsync(roles);
-            await _context.SaveChangesAsync();
         }
     }
 

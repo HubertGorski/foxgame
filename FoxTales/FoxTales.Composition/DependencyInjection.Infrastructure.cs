@@ -41,19 +41,19 @@ public static partial class DependencyInjection
     private static void AddSeeders(this IServiceCollection services)
     {
         services.AddScoped<DatabaseSeeder>();
-        services.AddTransient<AchievementSeeder>();
-        services.AddTransient<RoleSeeder>();
-        services.AddTransient<CatalogTypesSeeder>();
-        services.AddTransient<FoxGamesSeeder>();
-        services.AddTransient<LimitThresholdSeeder>();
-        services.AddTransient<AvatarsSeeder>();
-        services.AddTransient<PublicQuestionsSeeder>();
+        services.AddTransient<ISeeder, AchievementSeeder>();
+        services.AddTransient<ISeeder, RoleSeeder>();
+        services.AddTransient<ISeeder, CatalogTypesSeeder>();
+        services.AddTransient<ISeeder, FoxGamesSeeder>();
+        services.AddTransient<ISeeder, LimitThresholdSeeder>();
+        services.AddTransient<ISeeder, AvatarsSeeder>();
+        services.AddTransient<ISeeder, PublicQuestionsSeeder>();
     }
 
     private static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         JwtSettings jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
-        
+
         Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
         jwtSettings.Key ??= Environment.GetEnvironmentVariable("JWT_KEY") ?? throw new ConfigException("Missing JWT key (set via environment variable JWT_KEY)");
 

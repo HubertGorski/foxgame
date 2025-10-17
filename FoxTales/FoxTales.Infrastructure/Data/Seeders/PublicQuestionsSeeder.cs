@@ -5,33 +5,33 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class PublicQuestionsSeeder(FoxTalesDbContext context, ILogger<PublicQuestionsSeeder> logger)
+public class PublicQuestionsSeeder(FoxTalesDbContext context, ILogger<PublicQuestionsSeeder> logger) : IClearableSeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<PublicQuestionsSeeder> _logger = logger;
-
-    public async Task SeedAsync(bool clearQuestions)
+    public async Task ClearAsync()
     {
-        if (clearQuestions)
-        {
-            var publicQuestions = await _context.Questions
-                .Where(q => q.IsPublic)
-                .ToListAsync();
+        List<Question>? publicQuestions = await _context.Questions
+            .Where(q => q.IsPublic)
+            .ToListAsync();
 
+        if (publicQuestions.Count != 0)
             _context.Questions.RemoveRange(publicQuestions);
-            await _context.SaveChangesAsync();
-        }
+    }
 
-        if (_context.Questions.Any(q => q.IsPublic))
+    public async Task SeedAsync()
+    {
+        if (await _context.Questions.AnyAsync(q => q.IsPublic))
         {
             return;
         }
 
         _logger.LogInformation("Start public questions seeding");
 
-        if (!_context.Users.Any(u => u.Username == "Fox Templates"))
+        User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == "Fox Templates")!;
+        if (user == null)
         {
-            var newUser = new User
+            user = new User
             {
                 Username = "Fox Templates",
                 AvatarId = 1,
@@ -39,20 +39,12 @@ public class PublicQuestionsSeeder(FoxTalesDbContext context, ILogger<PublicQues
                 RoleId = (int)RoleName.Admin
             };
 
-            _context.Users.Add(newUser);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
-        }
-
-        User? user = await _context.Users.FirstOrDefaultAsync(u => u.Username == "Fox Templates")!;
-        if (user == null)
-        {
-            _logger.LogError("User 'Fox Templates' was not found.");
-            return;
         }
 
         IEnumerable<Question> questions = GetQuestions(user.UserId);
         await _context.Questions.AddRangeAsync(questions);
-        await _context.SaveChangesAsync();
     }
 
     private static List<Question> GetQuestions(int userId)

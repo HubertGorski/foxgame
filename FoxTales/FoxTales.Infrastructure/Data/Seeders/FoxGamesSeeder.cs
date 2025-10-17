@@ -4,10 +4,15 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class FoxGamesSeeder(FoxTalesDbContext context, ILogger<FoxGamesSeeder> logger)
+public class FoxGamesSeeder(FoxTalesDbContext context, ILogger<FoxGamesSeeder> logger) : IClearableSeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<FoxGamesSeeder> _logger = logger;
+    public async Task ClearAsync()
+    {
+        if (_context.FoxGames.Any())
+            _context.FoxGames.RemoveRange(_context.FoxGames);
+    }
 
     public async Task SeedAsync()
     {
@@ -16,7 +21,6 @@ public class FoxGamesSeeder(FoxTalesDbContext context, ILogger<FoxGamesSeeder> l
             _logger.LogInformation("Start fox games seeding");
             IEnumerable<FoxGame> games = GetGames();
             await _context.FoxGames.AddRangeAsync(games);
-            await _context.SaveChangesAsync();
         }
     }
 

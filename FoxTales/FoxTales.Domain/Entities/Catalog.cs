@@ -10,8 +10,8 @@ public class Catalog
     public string? Description { get; set; }
     public DateTime CreatedDate { get; set; }
 
-    public int OwnerId { get; set; }
-    public virtual User Owner { get; set; } = null!;
+    public int? OwnerId { get; set; }
+    public virtual User? Owner { get; set; } = null!;
 
     public ICollection<Question> Questions { get; set; } = [];
     public ICollection<CatalogType> AvailableTypes { get; set; } = [];

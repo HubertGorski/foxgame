@@ -4,10 +4,18 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresholdSeeder> logger)
+public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresholdSeeder> logger) : IClearableSeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<LimitThresholdSeeder> _logger = logger;
+    public async Task ClearAsync()
+    {
+        if (_context.LimitThresholds.Any())
+            _context.LimitThresholds.RemoveRange(_context.LimitThresholds);
+
+        if (_context.LimitDefinitions.Any())
+            _context.LimitDefinitions.RemoveRange(_context.LimitDefinitions);
+    }
 
     public async Task SeedAsync()
     {
@@ -24,8 +32,6 @@ public class LimitThresholdSeeder(FoxTalesDbContext context, ILogger<LimitThresh
             IEnumerable<LimitThreshold> limitThresholds = GetLimitThreshold();
             await _context.LimitThresholds.AddRangeAsync(limitThresholds);
         }
-
-        await _context.SaveChangesAsync();
     }
 
     private static List<LimitDefinition> GetLimitDefinitions()

@@ -4,10 +4,15 @@ using Microsoft.Extensions.Logging;
 
 namespace FoxTales.Infrastructure.Data.Seeders;
 
-public class CatalogTypesSeeder(FoxTalesDbContext context, ILogger<CatalogTypesSeeder> logger)
+public class CatalogTypesSeeder(FoxTalesDbContext context, ILogger<CatalogTypesSeeder> logger) : IClearableSeeder
 {
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<CatalogTypesSeeder> _logger = logger;
+    public async Task ClearAsync()
+    {
+        if (_context.Catalogs.Any())
+            _context.Catalogs.RemoveRange(_context.Catalogs);
+    }
 
     public async Task SeedAsync()
     {
@@ -16,7 +21,6 @@ public class CatalogTypesSeeder(FoxTalesDbContext context, ILogger<CatalogTypesS
             _logger.LogInformation("Start catalog types seeding");
             IEnumerable<CatalogType> catalogTypes = GetCatalogTypes();
             await _context.CatalogTypes.AddRangeAsync(catalogTypes);
-            await _context.SaveChangesAsync();
         }
     }
 

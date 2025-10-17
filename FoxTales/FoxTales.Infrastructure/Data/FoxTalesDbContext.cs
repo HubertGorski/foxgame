@@ -45,7 +45,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.HasOne(c => c.Owner)
                 .WithMany(u => u.Catalogs)
                 .HasForeignKey(c => c.OwnerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(c => c.CatalogType)
                 .WithMany()
                 .HasForeignKey(c => c.CatalogTypeId)
@@ -62,7 +62,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
                     j => j.HasOne<Catalog>()
                         .WithMany()
                         .HasForeignKey("CatalogId")
-                        .OnDelete(DeleteBehavior.Restrict),
+                        .OnDelete(DeleteBehavior.Cascade),
                     j =>
                     {
                         j.HasKey("CatalogId", "QuestionId");
@@ -190,7 +190,7 @@ public class FoxTalesDbContext(DbContextOptions<FoxTalesDbContext> options) : Db
             entity.HasOne(q => q.Owner)
                 .WithMany(u => u.Questions)
                 .HasForeignKey(q => q.OwnerId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }
