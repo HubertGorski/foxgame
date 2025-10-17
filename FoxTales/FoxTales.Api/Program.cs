@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.ConfigureLogging();
 
 builder.Configuration.AddEnvironmentVariables();
-await builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddSingleton<INotificationPublisher, LoggingNotificationPublisher>();
 
@@ -54,6 +54,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+await app.Services.InitializeDatabaseAsync();
 
 if (app.Environment.IsDevelopment())
 {

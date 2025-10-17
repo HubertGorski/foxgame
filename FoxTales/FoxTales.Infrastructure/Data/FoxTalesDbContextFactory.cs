@@ -1,4 +1,4 @@
-using DotNetEnv;
+using FoxTales.Infrastructure.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -15,11 +15,7 @@ public class IdentityDbContextFactory : IDesignTimeDbContextFactory<FoxTalesDbCo
             .AddEnvironmentVariables()
             .Build();
 
-        Env.Load(Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory())!.Parent!.FullName, ".env"));
-        var connectionString = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
-            ? config.GetValue<string>("ConnectionStrings:DefaultConnection")
-            : Environment.GetEnvironmentVariable("ConnectionStringLocal");
-
+        var connectionString = ConnectionStringProvider.GetConnectionString(config);
         var optionsBuilder = new DbContextOptionsBuilder<FoxTalesDbContext>();
         optionsBuilder.UseSqlServer(connectionString);
 

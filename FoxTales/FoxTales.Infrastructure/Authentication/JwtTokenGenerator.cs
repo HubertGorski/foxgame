@@ -3,19 +3,16 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FoxTales.Application.DTOs.User;
-using FoxTales.Application.Exceptions;
 using FoxTales.Application.Interfaces;
 using FoxTales.Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace FoxTales.Application.Helpers;
+namespace FoxTales.Infrastructure.Authentication;
 
-public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerator
+public class JwtTokenGenerator(JwtSettings jwtSettings) : IJwtTokenGenerator
 {
-    private readonly JwtSettings _jwtSettings = configuration.GetSection("Jwt").Get<JwtSettings>() ?? throw new ConfigException("Jwt Settings not found");
-
+    private readonly JwtSettings _jwtSettings = jwtSettings;
 
     public TokensResponseDto GetTokens(UserDto user)
     {
@@ -37,7 +34,6 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
             Options = options
         };
     }
-
 
     private string GenerateAccessToken(UserDto user)
     {
@@ -72,13 +68,4 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
 
         return tokenEntity;
     }
-}
-
-public class JwtSettings
-{
-    public required string Key { get; set; }
-    public required string Issuer { get; set; }
-    public required string Audience { get; set; }
-    public int AccessTokenExpiryMinutes { get; set; }
-    public int RefreshTokenExpiryDays { get; set; }
 }
