@@ -42,7 +42,7 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
         await MarkAllUsersUnreadyIfOwner(room, connectionId);
     }
 
-    public async Task MarkAllUsersUnreadyIfOwner(RoomDto room, string connectionId)
+    public async Task MarkAllUsersUnreadyIfOwner(RoomDto room, string connectionId) // TODO: zmnienic zeby bylo jak wszyscy gotowi.
     {
         var player = room.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
         if (player == null || room.Owner.UserId != player.UserId)

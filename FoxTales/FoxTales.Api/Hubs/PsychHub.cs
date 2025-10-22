@@ -1,5 +1,4 @@
 using FoxTales.Application.DTOs.Psych;
-using FoxTales.Application.Helpers;
 using Microsoft.AspNetCore.SignalR;
 using GameCode = System.String;
 using FoxTales.Application.DTOs.User;
@@ -8,21 +7,33 @@ using FoxTales.Api.Enums;
 
 namespace FoxTales.Api.Hubs;
 
-public class PsychHub(IRoomService roomService, IRoundService roundService) : Hub
+public class PsychHub(IRoomService roomService, IRoundService roundService, ILogger<PsychHub> logger) : Hub
 {
 
     private readonly IRoomService _roomService = roomService;
     private readonly IRoundService _roundService = roundService;
+    private readonly ILogger<PsychHub> _logger = logger;
     private static readonly Dictionary<GameCode, RoomDto> Rooms = [];
+
+
+    public override async Task OnConnectedAsync()
+    {
+        _logger.LogInformation("Connected: {ConnectionId} for user {UserIdentifier}", Context.ConnectionId, Context.UserIdentifier);
+        await base.OnConnectedAsync();
+    }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         var (gameCode, player) = FindPlayerByConnectionId(Context.ConnectionId);
+        _logger.LogInformation("Disconnected: {ConnectionId} for user {UserIdentifier}, {Player}, {GameCode}", Context.ConnectionId, Context.UserIdentifier, player, gameCode);
+
         if (gameCode == null || player == null)
         {
             await base.OnDisconnectedAsync(exception);
             return;
         }
+
+        _logger.LogInformation("Disconnected: {ConnectionId} for user {UserIdentifier}", Context.ConnectionId, Context.UserIdentifier);
 
         await _roomService.LeaveRoom(gameCode, player.UserId);
         await base.OnDisconnectedAsync(exception);

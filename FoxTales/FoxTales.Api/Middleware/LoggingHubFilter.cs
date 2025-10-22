@@ -16,7 +16,7 @@ public class LoggingHubFilter(ILogger<LoggingHubFilter> logger) : IHubFilter
         var argsJson = JsonSerializer.Serialize(invocationContext.HubMethodArguments);
 
         _logger.LogInformation(
-            "Hub={Hub} Method={Method} called with Args={ArgsJson} ",
+            "Hub={Hub} Method = '{Method}' called with Args={ArgsJson} ",
             hubName,
             methodName,
             argsJson
