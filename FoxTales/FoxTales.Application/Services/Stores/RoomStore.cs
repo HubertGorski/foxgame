@@ -71,4 +71,20 @@ public class RoomStore : IRoomStore
 
         return (null, null);
     }
+
+    public (string? RoomCode, PlayerDto? Player) FindPlayerByUserId(int? userId)
+    {
+        foreach (var room in _rooms)
+        {
+            if (room.Value == null || userId == null)
+                return (null, null);
+
+            var player = room.Value.Users.FirstOrDefault(p => p.UserId == userId);
+
+            if (player != null)
+                return (room.Key, player);
+        }
+
+        return (null, null);
+    }
 }

@@ -77,6 +77,18 @@ public static partial class DependencyInjection
                 IssuerSigningKey = new SymmetricSecurityKey(
                     Encoding.UTF8.GetBytes(jwtSettings.Key))
             };
+
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/psychhub"))
+                    {
+                        context.Token = context.Request.Query["access_token"];
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
     }
 }

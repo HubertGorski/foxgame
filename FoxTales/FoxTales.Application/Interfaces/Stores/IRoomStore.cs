@@ -13,4 +13,5 @@ public interface IRoomStore
     bool RoomExists(string code);
     RoomDto? GetRoomOrDefault(string code);
     (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId);
+    (string? RoomCode, PlayerDto? Player) FindPlayerByUserId(int? userId);
 }

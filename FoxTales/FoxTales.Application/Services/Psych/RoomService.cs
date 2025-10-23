@@ -82,6 +82,14 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         await _mediator.Publish(new RefreshPublicRoomsListEvent(publicRooms));
     }
 
+    public async Task SuspendUserInRoom(string gameCode, int playerId)
+    {
+        RoomDto room = GetRoomByCode(gameCode);
+        PlayerDto playerToRemove = room.Users.FirstOrDefault(p => p.UserId == playerId) ?? throw new InvalidOperationException($"Player {playerId} not found in room '{gameCode}'");
+        playerToRemove.ConnectionId = null;
+        await _mediator.Publish(new RefreshRoomEvent(room));
+    }
+
     public async Task LeaveRoom(string gameCode, int playerId)
     {
         RoomDto room = GetRoomByCode(gameCode);
@@ -137,6 +145,16 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
     public (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
     {
         return _roomStore.FindPlayerByConnectionId(connectionId);
+    }
+
+    public async Task ContinuePlaying(int? userId, string connectionId)
+    {
+        var (gameCode, player) = _roomStore.FindPlayerByUserId(userId);
+        if (gameCode == null || player == null)
+            return;
+
+        player.ConnectionId = connectionId;
+        await _mediator.Publish(new JoinRoomEvent(connectionId, gameCode));
     }
 
     private async Task RemoveAllRoomsByOwnerId(int ownerId)
