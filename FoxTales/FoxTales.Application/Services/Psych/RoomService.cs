@@ -134,6 +134,11 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         await RefreshPublicRoomsList();
     }
 
+    public (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
+    {
+        return _roomStore.FindPlayerByConnectionId(connectionId);
+    }
+
     private async Task RemoveAllRoomsByOwnerId(int ownerId)
     {
         var codes = _roomStore.GetAllRooms()

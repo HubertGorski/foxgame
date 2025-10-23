@@ -55,4 +55,20 @@ public class RoomStore : IRoomStore
 
         return _rooms.TryGetValue(code, out var room) ? room : null;
     }
+
+    public (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
+    {
+        foreach (var room in _rooms)
+        {
+            if (room.Value == null)
+                return (null, null);
+
+            var player = room.Value.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
+
+            if (player != null)
+                return (room.Key, player);
+        }
+
+        return (null, null);
+    }
 }

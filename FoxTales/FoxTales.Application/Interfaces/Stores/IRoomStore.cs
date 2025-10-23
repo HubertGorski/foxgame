@@ -12,4 +12,5 @@ public interface IRoomStore
     void RemoveRoom(string code);
     bool RoomExists(string code);
     RoomDto? GetRoomOrDefault(string code);
+    (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId);
 }

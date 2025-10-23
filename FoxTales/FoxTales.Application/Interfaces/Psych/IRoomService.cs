@@ -14,4 +14,5 @@ public interface IRoomService
     Task LeaveRoom(string gameCode, int playerId);
     Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions);
     Task JoinRoom(PlayerDto player, string? gameCode, string? password, int? ownerId);
+    (string? RoomCode, PlayerDto? Player) FindPlayerByConnectionId(string connectionId);
 }

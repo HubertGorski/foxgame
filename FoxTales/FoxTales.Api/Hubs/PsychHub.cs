@@ -13,8 +13,6 @@ public class PsychHub(IRoomService roomService, IRoundService roundService, ILog
     private readonly IRoomService _roomService = roomService;
     private readonly IRoundService _roundService = roundService;
     private readonly ILogger<PsychHub> _logger = logger;
-    private static readonly Dictionary<GameCode, RoomDto> Rooms = [];
-
 
     public override async Task OnConnectedAsync()
     {
@@ -24,17 +22,16 @@ public class PsychHub(IRoomService roomService, IRoundService roundService, ILog
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var (gameCode, player) = FindPlayerByConnectionId(Context.ConnectionId);
-        _logger.LogInformation("Disconnected: {ConnectionId} for user {UserIdentifier}, {Player}, {GameCode}", Context.ConnectionId, Context.UserIdentifier, player, gameCode);
+        var (gameCode, player) = _roomService.FindPlayerByConnectionId(Context.ConnectionId);
 
+        _logger.LogInformation("Disconnected: {ConnectionId}", Context.ConnectionId);
         if (gameCode == null || player == null)
         {
             await base.OnDisconnectedAsync(exception);
             return;
         }
 
-        _logger.LogInformation("Disconnected: {ConnectionId} for user {UserIdentifier}", Context.ConnectionId, Context.UserIdentifier);
-
+        _logger.LogInformation("Disconnected: {ConnectionId} for user {Player}, {GameCode}", Context.ConnectionId, player, gameCode);
         await _roomService.LeaveRoom(gameCode, player.UserId);
         await base.OnDisconnectedAsync(exception);
     }
@@ -104,18 +101,6 @@ public class PsychHub(IRoomService roomService, IRoundService roundService, ILog
     {
         player.ConnectionId = Context.ConnectionId;
         await _roomService.JoinRoom(player, gameCode, password, ownerId);
-    }
-
-    private static (string? Room, PlayerDto? Player) FindPlayerByConnectionId(string connectionId)
-    {
-        foreach (var room in Rooms)
-        {
-            if (room.Value == null) return (null, null);
-            var player = room.Value.Users.FirstOrDefault(p => p.ConnectionId == connectionId);
-            if (player != null) return (room.Key, player);
-        }
-
-        return (null, null);
     }
 
 }
