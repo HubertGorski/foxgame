@@ -6,6 +6,7 @@ using FoxTales.Api.Hubs;
 using System.Reflection;
 using Microsoft.AspNetCore.SignalR;
 using MediatR;
+using FoxTales.Api.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,7 @@ builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddSingleton<INotificationPublisher, LoggingNotificationPublisher>();
+builder.Services.AddSingleton<DuplicateDetectionHubFilter>();
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
@@ -32,6 +34,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSignalR(options =>
 {
+    options.AddFilter<DuplicateDetectionHubFilter>();
     options.AddFilter<LoggingHubFilter>();
 });
 
