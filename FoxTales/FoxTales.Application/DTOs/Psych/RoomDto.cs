@@ -17,4 +17,5 @@ public class RoomDto
     public bool IsGameStarted { get; set; } = false;
     public bool HasGameEnded { get; set; } = false;
     public int Round { get; set; } = 0;
+    public bool UseDixitRules { get; set; } = false;
 }

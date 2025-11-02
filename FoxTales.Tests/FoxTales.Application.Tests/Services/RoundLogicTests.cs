@@ -233,4 +233,130 @@ public class RoundLogicTests : BaseTest
         voter.VotesGiven.Should().ContainSingle(kv => kv.Key == owner.UserId && kv.Value == 1);
     }
 
+    [Fact]
+    public void AssignPoints_ByPsychRules()
+    {
+        // GIVEN
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        RoomDto room = CreateTestRoom();
+
+        // WHEN
+        _logic.AssignPoints(room, user);
+
+        // THEN
+        user.PointsInGame.Should().Be(10, "because voter selected users answer");
+    }
+
+    [Theory]
+    [
+        InlineData(new int[] { UserId }, new int[] { UserId_2, UserId_3 }, new int[] { }, new int[] { OwnerId }, new int[] { 10, 0, 0, 0 },
+        "When subject has zero votes and chooses someone else's answer, points should be awarded only to players who guessed subject's answer, subject receives no points, and points are awarded to player chosen by subject"),
+        InlineData(new int[] { UserId }, new int[] { UserId_3 }, new int[] { UserId_2 }, new int[] { OwnerId }, new int[] { 0, 0, 0, 0 },
+        "When subject has zero votes and chooses their own answer, points should be awarded only to players who guessed subject's answer, and subject receives no points"),
+        InlineData(new int[] { }, new int[] { }, new int[] { OwnerId, UserId, UserId_2, UserId_3 }, new int[] { }, new int[] { 10, 10, 0, 10 },
+        "When subject receives all votes and chooses their own answer, points should be awarded only to players who guessed subject's answer, and subject receives no points"),
+        InlineData(new int[] { }, new int[] { }, new int[] { OwnerId, UserId, UserId_3 }, new int[] { UserId_2 }, new int[] { 10, 10, 0, 20 },
+        "When subject receives all votes and chooses someone else's answer, points should be awarded only to players who guessed subject's answer, subject receives no points, and points are awarded to player chosen by subject"),
+        InlineData(new int[] { }, new int[] { }, new int[] { OwnerId, UserId_2, UserId_3 }, new int[] { UserId, }, new int[] { 0, 10, 20, 10 },
+        "When subject receives some votes and chooses their own answer, points should be awarded to players who guessed subject's answer, and subject also receives points"),
+        InlineData(new int[] { UserId_2 }, new int[] { }, new int[] { OwnerId, UserId_3 }, new int[] { UserId, }, new int[] { 0, 20, 20, 10 },
+        "When subject receives some votes and chooses someone else's answer, points should be awarded to players who guessed subject's answer, subject receives points, and points are awarded to player chosen by subject"),
+    ]
+    public void AssignPoints_DixitRules(int[] votersIdsForOwnerAnswer, int[] votersIdsForUserAnswer, int[] votersIdsForUser2Answer, int[] votersIdsForUser3Answer, int[] results, string testTitle)
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+        PlayerDto user_3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
+
+        RoomDto room = CreateTestRoom();
+        room.UseDixitRules = true;
+        room.Users = [user, owner, user_2, user_3];
+
+        QuestionDto currentQuestion = CreateTestQuestion();
+        currentQuestion.CurrentUser = user_2;
+        room.CurrentQuestion = currentQuestion;
+
+        owner.VotersIdsForHisAnswer = [.. votersIdsForOwnerAnswer];
+        user.VotersIdsForHisAnswer = [.. votersIdsForUserAnswer];
+        user_2.VotersIdsForHisAnswer = [.. votersIdsForUser2Answer];
+        user_3.VotersIdsForHisAnswer = [.. votersIdsForUser3Answer];
+
+        room.Users.ForEach(u => u.IsReady = true);
+
+        // WHEN
+        _logic.AssignPoints(room, user_3);
+
+        // THEN
+        room.Users.Select(u => u.PointsInGame).Should().Equal(results, testTitle);
+    }
+
+    [Fact]
+    public void AssignPoints_DixitRules_WhenUsersNotReady_ThenNoActionTaken()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+        PlayerDto user_3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
+
+        RoomDto room = CreateTestRoom();
+        room.UseDixitRules = true;
+        room.Users = [user, owner, user_2, user_3];
+
+        // WHEN
+        _logic.AssignPoints(room, user_3);
+
+        // THEN
+        owner.PointsInGame.Should().Be(0);
+        user.PointsInGame.Should().Be(0);
+        user_2.PointsInGame.Should().Be(0);
+        user_3.PointsInGame.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task AssignPoints_DixitRules_WhenCurrentQuestionIsNull_ThenThrowsException()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+        PlayerDto user_3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
+
+        RoomDto room = CreateTestRoom();
+        room.UseDixitRules = true;
+        room.Users = [user, owner, user_2, user_3];
+        room.Users.ForEach(u => u.IsReady = true);
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => _logic.AssignPoints(room, user_3));
+
+        // THEN
+        ex.Message.Should().Contain($"Question does not exist in room '{room.Code}'.");
+    }
+
+    [Fact]
+    public async Task AssignPoints_DixitRules_WhenSubjectUserNotAssociatedWithQuestion_ThenThrowsException()
+    {
+        // GIVEN
+        PlayerDto owner = CreateTestPlayer(OwnerId, OwnerName, OwnerConnectionId);
+        PlayerDto user = CreateTestPlayer(UserId, UserName, UserConnectionId);
+        PlayerDto user_2 = CreateTestPlayer(UserId_2, UserName_2, UserConnectionId_2);
+        PlayerDto user_3 = CreateTestPlayer(UserId_3, UserName_3, UserConnectionId_3);
+
+        RoomDto room = CreateTestRoom();
+        room.UseDixitRules = true;
+        room.Users = [user, owner, user_2, user_3];
+
+        QuestionDto currentQuestion = CreateTestQuestion();
+        room.CurrentQuestion = currentQuestion;
+        room.Users.ForEach(u => u.IsReady = true);
+
+        // WHEN
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => _logic.AssignPoints(room, user_3));
+
+        // THEN
+        ex.Message.Should().Contain($"Question does not exist in room '{room.Code}'.");
+    }
 }

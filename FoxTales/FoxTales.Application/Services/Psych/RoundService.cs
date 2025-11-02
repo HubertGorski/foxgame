@@ -2,7 +2,6 @@
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
-using FoxTales.Application.Helpers;
 using FoxTales.Application.Interfaces.Logics;
 using FoxTales.Application.Interfaces.Psych;
 using MediatR;
@@ -67,10 +66,8 @@ public class RoundService(IMediator mediator, IRoundLogic roundLogic) : IRoundSe
             return;
 
         _roundLogic.UpdateVotePool(voter, answerOwner);
-
         voter.IsReady = true;
-        answerOwner.PointsInGame += 10;
-
+        _roundLogic.AssignPoints(room, answerOwner);
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
 

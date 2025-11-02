@@ -394,11 +394,11 @@ public class RoundServiceTests : BaseTest
 
         user_2.IsReady.Should().BeTrue(because: "user_2 participated in voting and should be marked as ready");
 
-        owner.PointsInGame.Should().Be(0, because: "owner did not receive votes in this scenario");
+        _roundLogicMock.Verify(r => r.AssignPoints(room, owner), Times.Never, "owner should not receive any points since no one voted for them");
 
-        user.PointsInGame.Should().Be(20, because: "user received votes from owner and user_2");
+        _roundLogicMock.Verify(r => r.AssignPoints(room, user), Times.Exactly(2), "user should receive points from 2 votes (owner and user_2)");
 
-        user_2.PointsInGame.Should().Be(10, because: "user_2 received a vote from user");
+        _roundLogicMock.Verify(r => r.AssignPoints(room, user_2), Times.Once, "user_2 should receive points from 1 vote (user)");
 
         _roundLogicMock.Verify(r => r.UpdateVotePool(owner, user), Times.Once, "owner should have voted for user exactly once");
 

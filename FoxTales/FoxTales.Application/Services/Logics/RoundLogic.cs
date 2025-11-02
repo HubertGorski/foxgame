@@ -56,4 +56,55 @@ public class RoundLogic : IRoundLogic
             voter.VotesGiven.Add(new KeyValuePair<int, int>(owner.UserId, 1));
     }
 
+    public void AssignPoints(RoomDto room, PlayerDto answerOwner)
+    {
+        if (room.UseDixitRules)
+        {
+            AssignPointsByDixitRules(room);
+        }
+        else
+        {
+            AssignPointsByPsychRules(answerOwner);
+        }
+    }
+
+    private static void AssignPointsByPsychRules(PlayerDto answerOwner)
+    {
+        answerOwner.PointsInGame += 10;
+    }
+
+    private static void AssignPointsByDixitRules(RoomDto room)
+    {
+        if (room.Users.Any(u => !u.IsReady))
+        {
+            return;
+        }
+
+        if (room.CurrentQuestion == null || room.CurrentQuestion.CurrentUser == null)
+        {
+            throw new InvalidOperationException($"Question does not exist in room '{room.Code}'.");
+        }
+
+        PlayerDto subjectUser = room.CurrentQuestion.CurrentUser;
+        List<int> winningUsersIds = subjectUser.VotersIdsForHisAnswer;
+        winningUsersIds.Remove(subjectUser.UserId);
+
+        List<PlayerDto> allPlayersExceptSubjectUser = [.. room.Users.Where(u => u.UserId != subjectUser.UserId)];
+        if (winningUsersIds.Count > 0 && winningUsersIds.Count < allPlayersExceptSubjectUser.Count)
+        {
+            subjectUser.PointsInGame += 10 * winningUsersIds.Count;
+        }
+
+        room.Users
+            .Where(u => winningUsersIds.Contains(u.UserId))
+            .ToList()
+            .ForEach(user => user.PointsInGame += 10);
+
+        PlayerDto? selectedUserBySubjectUser = room.Users.Find(u => u.VotersIdsForHisAnswer.Contains(subjectUser.UserId));
+        if (selectedUserBySubjectUser != null)
+        {
+            selectedUserBySubjectUser.PointsInGame += 10;
+        }
+    }
+
 }
