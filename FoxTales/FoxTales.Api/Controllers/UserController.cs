@@ -30,7 +30,7 @@ public class UserController(IUserService userService) : ControllerBase
         int userId = await _userService.RegisterTmpUser(registerTmpUserDto);
         LoginUserResponseDto response = await _userService.LoginTmpUser(userId);
         Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
-        return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes, response.PublicQuestions });
+        return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes });
     }
 
     [HttpPost("login")]
@@ -40,7 +40,7 @@ public class UserController(IUserService userService) : ControllerBase
     {
         LoginUserResponseDto response = await _userService.LoginUser(loginUserDto);
         Response.Cookies.Append(RefreshToken, response.RefreshToken.Token, response.Options);
-        return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes, response.PublicQuestions });
+        return Ok(new { response.User, response.FoxGames, response.Avatars, response.AvailableCatalogTypes });
     }
 
     [HttpPost("logout")]

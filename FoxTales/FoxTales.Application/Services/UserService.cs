@@ -84,7 +84,6 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
         ICollection<FoxGameDto> foxGamesDto = await _userLimitService.GetAllFoxGames();
         ICollection<CatalogTypeDto> availableCatalogTypesDto = await _psychLibraryService.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
-        ICollection<QuestionDto> publicQuestionsDto = await _psychLibraryService.GetPublicQuestions();
 
         return new()
         {
@@ -93,8 +92,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
             AvailableCatalogTypes = availableCatalogTypesDto,
             FoxGames = foxGamesDto,
             Options = tokens.Options,
-            RefreshToken = tokens.RefreshToken,
-            PublicQuestions = publicQuestionsDto
+            RefreshToken = tokens.RefreshToken
         };
     }
 

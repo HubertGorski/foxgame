@@ -22,6 +22,7 @@ public static partial class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
 
         services.AddSingleton<IRoomStore, RoomStore>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();

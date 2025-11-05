@@ -17,13 +17,15 @@ public class RoomServiceTests : BaseTest
     private readonly RoomStore _store;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRoundService> _roundServiceMock;
+    private readonly Mock<IPsychLibraryService> _libraryServiceMock;
 
     public RoomServiceTests()
     {
         _store = new RoomStore();
         _mediatorMock = new Mock<IMediator>();
         _roundServiceMock = new Mock<IRoundService>();
-        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object, _store);
+        _libraryServiceMock = new Mock<IPsychLibraryService>();
+        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object, _store, _libraryServiceMock.Object);
     }
 
     private void AddRoomForTest(RoomDto room)
@@ -525,92 +527,110 @@ public class RoomServiceTests : BaseTest
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_ShouldAddNewOwnerQuestion_WhenOwnerAddsTwoQuestionsOneAlreadyExists_OtherQuestionsUnaffected()
+    public async Task AddQuestionsToGame_ShouldThrow_WhenPrivateQuestionsIncludeAnotherQuestions()
     {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["ownerQuestion_2"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["ownerQuestion_2"], Library["userQuestion"]];
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        AddRoomForTest(room);
+        List<QuestionDto> privateQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.AddQuestionsToGame(GameCode, OwnerId, privateQuestions));
+
+        // Then
+        Assert.Contains("The private questions provided do not belong to the player or are public", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_ShouldThrow_WhenPrivateQuestionsIncludePublicQuestions()
+    {
+        // Given
+        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
+        AddRoomForTest(room);
+        List<QuestionDto> privateQuestions = [Library["publicQuestion"], Library["userQuestion"]];
+
+        // When
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _service.AddQuestionsToGame(GameCode, OwnerId, privateQuestions));
+
+        // Then
+        Assert.Contains("The private questions provided do not belong to the player or are public", ex.Message);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_WhenOwnerAddsNewQuestions_ThenOnlyOwnersQuestionsAreReplaced()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"], Library["userQuestion"]];
         await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_ShouldRemoveOneOwnerQuestion_WhenOwnerRemovesOneOfTwo_OtherQuestionsUnaffected()
+    public async Task AddQuestionsToGame_WhenOwnerAddsPublicQuestions_ThenPublicQuestionsAreAdded()
     {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"], Library["publicQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldRemovePublicQuestions_WhenOwnerRemovesPublicQuestions()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["ownerQuestion"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldAddPublicQuestions_WhenOwnerAddsPublicQuestions()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"], Library["userQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldNotAddPublicQuestions_WhenUserAddsPublicQuestions()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["userQuestion"], Library["publicQuestion"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldUpdateUserQuestion_WhenUserChangesTheirOwnQuestion()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["userQuestion_2"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldAddNextUserQuestion_WhenUserAddsAnotherQuestion()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion_2"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldRemoveAllUserQuestions_WhenUserDeletesAllTheirQuestions_OtherQuestionsUnaffected()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> oldQuestions = [];
         List<QuestionDto> newQuestions = [];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+        List<QuestionDto> expectedQuestions = [Library["publicQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId, true);
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_ShouldNotAddQuestions_WhenUserIsNotOwnerOfThem()
+    public async Task AddQuestionsToGame_WhenOwnerAddsDifferentQuestions_ThenOldOwnerQuestionsAreRemoved()
     {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["publicQuestion"]];
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
         List<QuestionDto> newQuestions = [Library["ownerQuestion_2"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["publicQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId);
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion_2"], Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
     }
 
-    private async Task RunAddQuestionsTest(List<QuestionDto> oldQuestions, List<QuestionDto> newQuestions, List<QuestionDto> expectedQuestions, int playerId)
+    [Fact]
+    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestions_ThenRemoveOwnerQuestions()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [];
+        List<QuestionDto> expectedQuestions = [Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestionsAndPublicEnabled_ThenPublicQuestionsAreAdded()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [];
+        List<QuestionDto> expectedQuestions = [Library["userQuestion"], Library["publicQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId, true);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestionsAndPublicDisabled_ThenOnlyUserQuestionsRemain()
+    {
+        List<QuestionDto> oldQuestions = [Library["publicQuestion"], Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [];
+        List<QuestionDto> expectedQuestions = [Library["userQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
+    }
+
+    [Fact]
+    public async Task AddQuestionsToGame_WhenPlayerAddsQuestionsAndPublicEnabled_ThenReplacePlayersQuestionsAndAddPublic()
+    {
+        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
+        List<QuestionDto> newQuestions = [Library["userQuestion"], Library["userQuestion_2"]];
+        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["userQuestion_2"], Library["publicQuestion"]];
+        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId, true);
+    }
+
+    private async Task RunAddQuestionsTest(List<QuestionDto> oldQuestions, List<QuestionDto> newQuestions, List<QuestionDto> expectedQuestions, int playerId, bool usePublicQuestions = false)
     {
         // Given
         RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
         room.Questions = oldQuestions;
+        room.UsePublicQuestions = usePublicQuestions;
         AddRoomForTest(room);
+        bool hasNoPublicQuestions = !room.Questions.Any(q => q.IsPublic);
+
+        _libraryServiceMock.Setup(r => r.GetPublicQuestions()).ReturnsAsync([Library["publicQuestion"]]);
 
         // When
         await _service.AddQuestionsToGame(GameCode, playerId, newQuestions);
@@ -620,6 +640,15 @@ public class RoomServiceTests : BaseTest
 
         Assert.Equal(expectedQuestions.Count, currentQuestions.Count);
         Assert.All(expectedQuestions, q => Assert.Contains(q, currentQuestions));
+
+        if (usePublicQuestions && hasNoPublicQuestions)
+        {
+            _libraryServiceMock.Verify(r => r.GetPublicQuestions(), Times.Once);
+        }
+        else
+        {
+            _libraryServiceMock.Verify(r => r.GetPublicQuestions(), Times.Never);
+        }
 
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);
     }

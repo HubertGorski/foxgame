@@ -1,4 +1,5 @@
 using AutoMapper;
+using FoxTales.Application.Common.Cache;
 using FoxTales.Application.DTOs.Catalog;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Exceptions;
@@ -6,13 +7,16 @@ using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Domain.Entities;
 using FoxTales.Domain.Enums;
 using FoxTales.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace FoxTales.Application.Services.Psych;
 
-public class PsychLibraryService(IPsychLibraryRepository psychLibraryRepository, IMapper mapper) : IPsychLibraryService
+public class PsychLibraryService(IPsychLibraryRepository psychLibraryRepository, IMapper mapper, IMemoryCache cache) : IPsychLibraryService
 {
     private readonly IPsychLibraryRepository _psychLibraryRepository = psychLibraryRepository;
     private readonly IMapper _mapper = mapper;
+    private readonly IMemoryCache _cache = cache;
+    private readonly TimeSpan _cacheDuration = TimeSpan.FromHours(1); // TODO: z settingsow brac czas
 
     public async Task<int> AddQuestion(QuestionDto request)
     {
@@ -71,8 +75,17 @@ public class PsychLibraryService(IPsychLibraryRepository psychLibraryRepository,
 
     public async Task<ICollection<QuestionDto>> GetPublicQuestions()
     {
+        if (_cache.TryGetValue(CacheKeys.PublicQuestions, out ICollection<QuestionDto>? cachedQuestions) && cachedQuestions != null)
+        {
+            return cachedQuestions;
+        }
+
         ICollection<Question> publicQuestions = await _psychLibraryRepository.GetPublicQuestions();
-        return _mapper.Map<ICollection<QuestionDto>>(publicQuestions);
+        ICollection<QuestionDto> publicQuestionsDto = _mapper.Map<ICollection<QuestionDto>>(publicQuestions);
+
+        _cache.Set(CacheKeys.PublicQuestions, publicQuestionsDto, new MemoryCacheEntryOptions().SetSlidingExpiration(_cacheDuration));
+
+        return publicQuestionsDto;
     }
 
 }

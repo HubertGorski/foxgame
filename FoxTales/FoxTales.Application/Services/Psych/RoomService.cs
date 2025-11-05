@@ -8,11 +8,12 @@ using FoxTales.Application.Interfaces.Stores;
 
 namespace FoxTales.Application.Services.Psych;
 
-public class RoomService(IMediator mediator, IRoundService roundService, IRoomStore roomStore) : IRoomService
+public class RoomService(IMediator mediator, IRoundService roundService, IRoomStore roomStore, IPsychLibraryService psychLibraryService) : IRoomService
 {
     private readonly IRoundService _roundService = roundService;
     private readonly IMediator _mediator = mediator;
     private readonly IRoomStore _roomStore = roomStore;
+    private readonly IPsychLibraryService _psychLibraryService = psychLibraryService;
 
     public RoomDto GetRoomByCode(string gameCode)
     {
@@ -106,22 +107,28 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         await RefreshPublicRoomsList();
     }
 
-    public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
+    public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> privateQuestions)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        if (room.Owner.UserId == playerId)
+        if (privateQuestions.Any(q => q.IsPublic || q.OwnerId != playerId))
         {
-            questions = [.. questions.Where(q => q.OwnerId == playerId || q.IsPublic)];
+            throw new InvalidOperationException("The private questions provided do not belong to the player or are public");
+        }
+
+        if (room.UsePublicQuestions && !room.Questions.Any(q => q.IsPublic))
+        {
+            ICollection<QuestionDto> publicQuestions = await _psychLibraryService.GetPublicQuestions();
+            room.Questions.AddRange(publicQuestions);
+        }
+
+        if (!room.UsePublicQuestions && room.Questions.Any(q => q.IsPublic))
+        {
             room.Questions.RemoveAll(q => q.IsPublic);
         }
 
-        if (room.Owner.UserId != playerId)
-        {
-            questions = [.. questions.Where(q => q.OwnerId == playerId)];
-        }
-
         room.Questions.RemoveAll(q => q.OwnerId == playerId);
-        room.Questions.AddRange(questions);
+        room.Questions.AddRange(privateQuestions);
+
         await _mediator.Publish(new RefreshRoomEvent(room));
     }
 

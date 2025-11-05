@@ -1,4 +1,3 @@
-
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
