@@ -15,4 +15,5 @@ public class PlayerDto
     public List<KeyValuePair<int, int>> VotesReceived { get; set; } = [];
     public List<KeyValuePair<int, int>> VotesGiven { get; set; } = [];
     public int SelectionCount { get; set; } = 0;
+    public int? TeamId { get; set; } = null;
 }

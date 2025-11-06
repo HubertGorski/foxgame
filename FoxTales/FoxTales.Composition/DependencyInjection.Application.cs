@@ -27,6 +27,7 @@ public static partial class DependencyInjection
         services.AddSingleton<IRoomStore, RoomStore>();
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IRoundLogic, RoundLogic>();
+        services.AddScoped<IRoomLogic, RoomLogic>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddServices();
         services.AddValidators();

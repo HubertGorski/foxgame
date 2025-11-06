@@ -5,14 +5,16 @@ using MediatR;
 using FoxTales.Application.Events;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Interfaces.Stores;
+using FoxTales.Application.Interfaces.Logics;
 
 namespace FoxTales.Application.Services.Psych;
 
-public class RoomService(IMediator mediator, IRoundService roundService, IRoomStore roomStore, IPsychLibraryService psychLibraryService) : IRoomService
+public class RoomService(IMediator mediator, IRoundService roundService, IRoomStore roomStore, IPsychLibraryService psychLibraryService, IRoomLogic roomLogic) : IRoomService
 {
     private readonly IRoundService _roundService = roundService;
     private readonly IMediator _mediator = mediator;
     private readonly IRoomStore _roomStore = roomStore;
+    private readonly IRoomLogic _roomLogic = roomLogic;
     private readonly IPsychLibraryService _psychLibraryService = psychLibraryService;
 
     public RoomDto GetRoomByCode(string gameCode)
@@ -70,6 +72,8 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
     {
         RoomDto room = GetRoomByCode(gameCode);
         if (room.Questions.Count == 0) throw new InvalidOperationException($"Room '{gameCode}' does not have any questions! (StartGame)");
+
+        _roomLogic.IsTeamSetupValid(room); // TODO: dokonczyc
 
         room.IsGameStarted = true;
 

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Events;
+using FoxTales.Application.Interfaces.Logics;
 using FoxTales.Application.Interfaces.Psych;
 using FoxTales.Application.Services.Psych;
 using FoxTales.Application.Services.Stores;
@@ -17,6 +18,7 @@ public class RoomServiceTests : BaseTest
     private readonly RoomStore _store;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRoundService> _roundServiceMock;
+    private readonly Mock<IRoomLogic> _roomLogicMock;
     private readonly Mock<IPsychLibraryService> _libraryServiceMock;
 
     public RoomServiceTests()
@@ -24,8 +26,9 @@ public class RoomServiceTests : BaseTest
         _store = new RoomStore();
         _mediatorMock = new Mock<IMediator>();
         _roundServiceMock = new Mock<IRoundService>();
+        _roomLogicMock = new Mock<IRoomLogic>();
         _libraryServiceMock = new Mock<IPsychLibraryService>();
-        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object, _store, _libraryServiceMock.Object);
+        _service = new RoomService(_mediatorMock.Object, _roundServiceMock.Object, _store, _libraryServiceMock.Object, _roomLogicMock.Object);
     }
 
     private void AddRoomForTest(RoomDto room)

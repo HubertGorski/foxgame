@@ -8,6 +8,7 @@ using FoxTales.Application.DTOs.Psych;
 using FoxTales.Application.DTOs.User;
 using FoxTales.Application.Services.Stores;
 using FoxTales.Application.Interfaces.Psych;
+using FoxTales.Application.Interfaces.Logics;
 
 namespace FoxTales.Application.Tests.Services;
 
@@ -18,6 +19,7 @@ public class RoomServiceIntegrationTests : BaseTest
     private readonly RoomStore _store;
     private readonly RoundLogic _roundLogic;
     private readonly Mock<IMediator> _mediatorMock;
+    private readonly Mock<IRoomLogic> _roomLogicMock;
     private readonly Mock<IPsychLibraryService> _libraryServiceMock;
 
     private const string TestPassword = "password";
@@ -29,7 +31,8 @@ public class RoomServiceIntegrationTests : BaseTest
         _roundLogic = new RoundLogic();
         _roundService = new RoundService(_mediatorMock.Object, _roundLogic);
         _libraryServiceMock = new Mock<IPsychLibraryService>();
-        _roomService = new RoomService(_mediatorMock.Object, _roundService, _store, _libraryServiceMock.Object);
+        _roomLogicMock = new Mock<IRoomLogic>();
+        _roomService = new RoomService(_mediatorMock.Object, _roundService, _store, _libraryServiceMock.Object, _roomLogicMock.Object);
     }
 
     [Fact]

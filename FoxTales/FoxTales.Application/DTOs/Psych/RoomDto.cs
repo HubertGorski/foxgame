@@ -18,4 +18,5 @@ public class RoomDto
     public bool HasGameEnded { get; set; } = false;
     public int Round { get; set; } = 0;
     public bool UseDixitRules { get; set; } = false;
+    public bool IsTeamModeEnabled { get; set; } = false;
 }

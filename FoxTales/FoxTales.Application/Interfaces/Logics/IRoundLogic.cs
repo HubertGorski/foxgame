@@ -8,4 +8,5 @@ public interface IRoundLogic
     QuestionDto GetNewCurrentQuestionWithSelectedPlayer(RoomDto room);
     void UpdateVotePool(PlayerDto voter, PlayerDto owner);
     void AssignPoints(RoomDto room, PlayerDto answerOwner);
+    bool AreAnswersTheSame(AnswerDto? answer1, AnswerDto? answer2);
 }
