@@ -55,6 +55,9 @@ public static partial class DependencyInjection
         services.AddScoped<IRoundService, RoundService>();
 
         services.AddHostedService<TokenCleanupService>();
+
+        services.AddSingleton<IGeminiSettings, GeminiSettings>();
+        services.AddHttpClient<GeminiService>();
     }
 
     private static void AddValidators(this IServiceCollection services)
