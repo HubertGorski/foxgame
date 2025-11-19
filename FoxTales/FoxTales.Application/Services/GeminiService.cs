@@ -9,7 +9,8 @@ public class GeminiService(HttpClient httpClient, IGeminiSettings geminiSettings
     private readonly HttpClient _httpClient = httpClient;
     private readonly string _apiKey = geminiSettings.ApiKey;
 
-    public async Task<string> Test(string text)
+
+    public async Task<string> Test(string text) // TODO: add new game type
     {
         var requestBody = new
         {

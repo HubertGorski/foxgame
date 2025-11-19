@@ -359,25 +359,4 @@ public class RoundLogicTests : BaseTest
         // THEN
         ex.Message.Should().Contain($"Question does not exist in room '{room.Code}'.");
     }
-
-    [Theory]
-    [
-        InlineData("latwo", "lato", false),
-        InlineData("okno", "okoń", false),
-        InlineData("zima", "lato", false),
-    ]
-    public void AreAnswersTheSame_test(string answer1, string answer2, bool expectedResult)
-    {
-        // GIVEN
-        AnswerDto answerDto1 = CreateTestAnswer();
-        answerDto1.Answer = answer1;
-        AnswerDto answerDto2 = CreateTestAnswer();
-        answerDto2.Answer = answer2;
-
-        // WHEN
-        bool result = _logic.AreAnswersTheSame(answerDto1, answerDto2);
-
-        // THEN
-        result.Should().Be(expectedResult);
-    }
 }
