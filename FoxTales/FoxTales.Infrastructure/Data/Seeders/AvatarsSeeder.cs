@@ -9,7 +9,7 @@ public class AvatarsSeeder(FoxTalesDbContext context, ILogger<AvatarsSeeder> log
     private readonly FoxTalesDbContext _context = context;
     private readonly ILogger<AvatarsSeeder> _logger = logger;
 
-    public async Task SeedAsync()
+    public async Task SeedAsync() // TODO: obsluzyc to w inny sposob by gracze nie tracili swoich avatarow.
     {
         if (!_context.Avatars.Any())
         {
