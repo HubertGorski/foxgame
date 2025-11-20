@@ -88,4 +88,22 @@ public class PsychLibraryService(IPsychLibraryRepository psychLibraryRepository,
         return publicQuestionsDto;
     }
 
+    public async Task<ICollection<CatalogDto>> GetPublicCatalogsWithExampleQuestions()
+    {
+        if (_cache.TryGetValue(CacheKeys.PublicCatalogs, out ICollection<CatalogDto>? cachedCatalogs) && cachedCatalogs != null)
+        {
+            return cachedCatalogs;
+        }
+
+        ICollection<Catalog> publicCatalogs = await _psychLibraryRepository.GetPublicCatalogsWithExampleQuestions();
+        ICollection<CatalogDto> publicCatalogsDto = _mapper.Map<ICollection<CatalogDto>>(publicCatalogs);
+
+        foreach (var catalog in publicCatalogsDto)
+            catalog.Questions = [.. catalog.Questions.Take(3)];
+
+        _cache.Set(CacheKeys.PublicCatalogs, publicCatalogsDto, new MemoryCacheEntryOptions().SetSlidingExpiration(_cacheDuration));
+
+        return publicCatalogsDto;
+    }
+
 }

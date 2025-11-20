@@ -84,12 +84,14 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
 
         ICollection<FoxGameDto> foxGamesDto = await _userLimitService.GetAllFoxGames();
         ICollection<CatalogTypeDto> availableCatalogTypesDto = await _psychLibraryService.GetCatalogTypesByPresetName(CatalogTypePresetName.DEFAULT_SIZES);
+        ICollection<CatalogDto> PublicCatalogsDto = await _psychLibraryService.GetPublicCatalogsWithExampleQuestions();
 
         return new()
         {
             User = userDto,
             Avatars = avatarsDto,
             AvailableCatalogTypes = availableCatalogTypesDto,
+            PublicCatalogs = PublicCatalogsDto,
             FoxGames = foxGamesDto,
             Options = tokens.Options,
             RefreshToken = tokens.RefreshToken

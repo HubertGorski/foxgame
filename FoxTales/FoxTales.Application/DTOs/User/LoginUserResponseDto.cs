@@ -13,4 +13,5 @@ public class LoginUserResponseDto
     public required ICollection<FoxGameDto> FoxGames { get; set; }
     public required ICollection<AvatarDto> Avatars { get; set; }
     public required ICollection<CatalogTypeDto> AvailableCatalogTypes { get; set; }
+    public required ICollection<CatalogDto> PublicCatalogs { get; set; }
 }

@@ -149,4 +149,11 @@ public class EfPsychLibraryRepository(FoxTalesDbContext db) : IPsychLibraryRepos
     {
         return await _db.Questions.Where(q => q.IsPublic).ToListAsync();
     }
+
+    public async Task<ICollection<Catalog>> GetPublicCatalogsWithExampleQuestions()
+    {
+        return await _db.Catalogs
+            .Include(c => c.Questions)
+            .Where(q => q.CatalogTypeId == (int)CatalogTypeName.Public).ToListAsync();
+    }
 }

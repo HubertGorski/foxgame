@@ -15,4 +15,5 @@ public interface IPsychLibraryRepository
     Task AddQuestionsToCatalogs(List<int> questionIds, List<int> catalogsIds);
     Task<ICollection<CatalogType>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
     Task<ICollection<Question>> GetPublicQuestions();
+    Task<ICollection<Catalog>> GetPublicCatalogsWithExampleQuestions();
 }
