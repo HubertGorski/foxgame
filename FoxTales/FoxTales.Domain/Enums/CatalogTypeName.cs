@@ -15,5 +15,7 @@ public enum CatalogTypeName
     [EnumMember(Value = "NoLimit")]
     NoLimit = 4,
     [EnumMember(Value = "Public")]
-    Public = 5
+    Public = 5,
+    [EnumMember(Value = "Draft")]
+    Draft = 6
 }

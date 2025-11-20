@@ -52,6 +52,12 @@ public class CatalogTypesSeeder(FoxTalesDbContext context, ILogger<CatalogTypesS
                     CatalogTypeId = (int)CatalogTypeName.Public,
                     Name = CatalogTypeName.Public,
                     Size = 100
+                },
+                new()
+                {
+                    CatalogTypeId = (int)CatalogTypeName.Draft,
+                    Name = CatalogTypeName.Draft,
+                    Size = 100
                 }
             };
 
