@@ -71,9 +71,9 @@ public class PsychHub(IRoomService roomService, IRoundService roundService, ILog
         await _roomService.LeaveRoom(gameCode, playerId);
     }
 
-    public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
+    public async Task AddPrivateQuestionsToGame(string gameCode, int playerId, List<QuestionDto> questions)
     {
-        await _roomService.AddQuestionsToGame(gameCode, playerId, questions);
+        await _roomService.AddPrivateQuestionsToGame(gameCode, playerId, questions);
     }
 
     public async Task SetNewRound(string gameCode)

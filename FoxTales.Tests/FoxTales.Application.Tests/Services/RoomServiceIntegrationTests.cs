@@ -92,10 +92,10 @@ public class RoomServiceIntegrationTests : BaseTest
             Library["ownerQuestion"],
             Library["ownerQuestion_2"]
         ];
-        await _roomService.AddQuestionsToGame(code, OwnerId, ownerQuestions);
+        await _roomService.AddPrivateQuestionsToGame(code, OwnerId, ownerQuestions);
         _store.GetRoomOrDefault(code).Questions.Should().Equal(ownerQuestions);
 
-        await _roomService.AddQuestionsToGame(code, UserId, [Library["userQuestion"]]);
+        await _roomService.AddPrivateQuestionsToGame(code, UserId, [Library["userQuestion"]]);
         _store.GetRoomOrDefault(code).Questions.Should().Equal(ownerQuestions.Append(Library["userQuestion"]));
 
         // Players mark ready

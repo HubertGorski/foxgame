@@ -19,4 +19,5 @@ public class RoomDto
     public int Round { get; set; } = 0;
     public bool UseDixitRules { get; set; } = false;
     public bool IsTeamModeEnabled { get; set; } = false;
+    public int? SelectedPublicCatalogId { get; set; }
 }

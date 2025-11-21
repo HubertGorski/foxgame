@@ -71,6 +71,9 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
     public async Task StartGame(string gameCode, string connectionId)
     {
         RoomDto room = GetRoomByCode(gameCode);
+
+        await AddPublicQuestionsToGame(room);
+
         if (room.Questions.Count == 0) throw new InvalidOperationException($"Room '{gameCode}' does not have any questions! (StartGame)");
 
         _roomLogic.IsTeamSetupValid(room); // TODO: dokonczyc
@@ -111,17 +114,21 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         await RefreshPublicRoomsList();
     }
 
-    public async Task AddQuestionsToGame(string gameCode, int playerId, List<QuestionDto> privateQuestions)
+    public async Task AddPrivateQuestionsToGame(string gameCode, int playerId, List<QuestionDto> privateQuestions)
     {
         RoomDto room = GetRoomByCode(gameCode);
-        if (privateQuestions.Any(q => q.IsPublic || q.OwnerId != playerId))
-        {
-            throw new InvalidOperationException("The private questions provided do not belong to the player or are public");
-        }
 
+        room.Questions.RemoveAll(q => q.OwnerId == playerId);
+        room.Questions.AddRange(privateQuestions);
+
+        await _mediator.Publish(new RefreshRoomEvent(room));
+    }
+
+    public async Task AddPublicQuestionsToGame(RoomDto room)
+    {
         if (room.UsePublicQuestions && !room.Questions.Any(q => q.IsPublic))
         {
-            ICollection<QuestionDto> publicQuestions = await _psychLibraryService.GetPublicQuestions();
+            ICollection<QuestionDto> publicQuestions = await _psychLibraryService.GetPublicQuestionsByCatalogId(room.SelectedPublicCatalogId ?? 0);
             room.Questions.AddRange(publicQuestions);
         }
 
@@ -129,9 +136,6 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         {
             room.Questions.RemoveAll(q => q.IsPublic);
         }
-
-        room.Questions.RemoveAll(q => q.OwnerId == playerId);
-        room.Questions.AddRange(privateQuestions);
 
         await _mediator.Publish(new RefreshRoomEvent(room));
     }

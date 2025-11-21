@@ -14,6 +14,6 @@ public interface IPsychLibraryService
     Task<bool> EditCatalog(CreateAndEditCatalogDto request);
     Task<bool> AssignedQuestionsToCatalogs(List<int> questionsIds, List<int> catalogsIds);
     Task<ICollection<CatalogTypeDto>> GetCatalogTypesByPresetName(CatalogTypePresetName presetName);
-    Task<ICollection<QuestionDto>> GetPublicQuestions();
+    Task<ICollection<QuestionDto>> GetPublicQuestionsByCatalogId(int catalogId);
     Task<ICollection<CatalogDto>> GetPublicCatalogsWithExampleQuestions();
 }

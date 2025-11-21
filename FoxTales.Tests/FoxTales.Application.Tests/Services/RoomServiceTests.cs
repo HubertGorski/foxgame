@@ -519,50 +519,18 @@ public class RoomServiceTests : BaseTest
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_ShouldThrow_WhenRoomDoesNotExist()
+    public async Task AddPrivateQuestionsToGame_ShouldThrow_WhenRoomDoesNotExist()
     {
         // When
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await _service.AddQuestionsToGame(GameCode, OwnerId, []));
+            await _service.AddPrivateQuestionsToGame(GameCode, OwnerId, []));
 
         // Then
         Assert.Contains($"Code '{GameCode}' does not exist", ex.Message);
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_ShouldThrow_WhenPrivateQuestionsIncludeAnotherQuestions()
-    {
-        // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        AddRoomForTest(room);
-        List<QuestionDto> privateQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-
-        // When
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await _service.AddQuestionsToGame(GameCode, OwnerId, privateQuestions));
-
-        // Then
-        Assert.Contains("The private questions provided do not belong to the player or are public", ex.Message);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_ShouldThrow_WhenPrivateQuestionsIncludePublicQuestions()
-    {
-        // Given
-        RoomDto room = CreateTestRoom(GameCode, OwnerId, OwnerName, OwnerConnectionId);
-        AddRoomForTest(room);
-        List<QuestionDto> privateQuestions = [Library["publicQuestion"], Library["userQuestion"]];
-
-        // When
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await _service.AddQuestionsToGame(GameCode, OwnerId, privateQuestions));
-
-        // Then
-        Assert.Contains("The private questions provided do not belong to the player or are public", ex.Message);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsNewQuestions_ThenOnlyOwnersQuestionsAreReplaced()
+    public async Task AddPrivateQuestionsToGame_WhenOwnerAddsNewQuestions_ThenOnlyOwnersQuestionsAreReplaced()
     {
         List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
         List<QuestionDto> newQuestions = [Library["ownerQuestion"], Library["ownerQuestion_2"]];
@@ -571,16 +539,7 @@ public class RoomServiceTests : BaseTest
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsPublicQuestions_ThenPublicQuestionsAreAdded()
-    {
-        List<QuestionDto> oldQuestions = [];
-        List<QuestionDto> newQuestions = [];
-        List<QuestionDto> expectedQuestions = [Library["publicQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId, true);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsDifferentQuestions_ThenOldOwnerQuestionsAreRemoved()
+    public async Task AddPrivateQuestionsToGame_WhenOwnerAddsDifferentQuestions_ThenOldOwnerQuestionsAreRemoved()
     {
         List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
         List<QuestionDto> newQuestions = [Library["ownerQuestion_2"]];
@@ -589,39 +548,12 @@ public class RoomServiceTests : BaseTest
     }
 
     [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestions_ThenRemoveOwnerQuestions()
+    public async Task AddPrivateQuestionsToGame_WhenOwnerAddsNoQuestions_ThenRemoveOwnerQuestions()
     {
         List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
         List<QuestionDto> newQuestions = [];
         List<QuestionDto> expectedQuestions = [Library["userQuestion"]];
         await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestionsAndPublicEnabled_ThenPublicQuestionsAreAdded()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [];
-        List<QuestionDto> expectedQuestions = [Library["userQuestion"], Library["publicQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId, true);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_WhenOwnerAddsNoQuestionsAndPublicDisabled_ThenOnlyUserQuestionsRemain()
-    {
-        List<QuestionDto> oldQuestions = [Library["publicQuestion"], Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [];
-        List<QuestionDto> expectedQuestions = [Library["userQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, OwnerId);
-    }
-
-    [Fact]
-    public async Task AddQuestionsToGame_WhenPlayerAddsQuestionsAndPublicEnabled_ThenReplacePlayersQuestionsAndAddPublic()
-    {
-        List<QuestionDto> oldQuestions = [Library["ownerQuestion"], Library["userQuestion"]];
-        List<QuestionDto> newQuestions = [Library["userQuestion"], Library["userQuestion_2"]];
-        List<QuestionDto> expectedQuestions = [Library["ownerQuestion"], Library["userQuestion"], Library["userQuestion_2"], Library["publicQuestion"]];
-        await RunAddQuestionsTest(oldQuestions, newQuestions, expectedQuestions, UserId, true);
     }
 
     private async Task RunAddQuestionsTest(List<QuestionDto> oldQuestions, List<QuestionDto> newQuestions, List<QuestionDto> expectedQuestions, int playerId, bool usePublicQuestions = false)
@@ -633,10 +565,10 @@ public class RoomServiceTests : BaseTest
         AddRoomForTest(room);
         bool hasNoPublicQuestions = !room.Questions.Any(q => q.IsPublic);
 
-        _libraryServiceMock.Setup(r => r.GetPublicQuestions()).ReturnsAsync([Library["publicQuestion"]]);
+        _libraryServiceMock.Setup(r => r.GetPublicQuestionsByCatalogId(1)).ReturnsAsync([Library["publicQuestion"]]);
 
         // When
-        await _service.AddQuestionsToGame(GameCode, playerId, newQuestions);
+        await _service.AddPrivateQuestionsToGame(GameCode, playerId, newQuestions);
 
         // Then
         List<QuestionDto> currentQuestions = GetRoomsForTest().Values.First().Questions;
@@ -646,11 +578,11 @@ public class RoomServiceTests : BaseTest
 
         if (usePublicQuestions && hasNoPublicQuestions)
         {
-            _libraryServiceMock.Verify(r => r.GetPublicQuestions(), Times.Once);
+            _libraryServiceMock.Verify(r => r.GetPublicQuestionsByCatalogId(1), Times.Once);
         }
         else
         {
-            _libraryServiceMock.Verify(r => r.GetPublicQuestions(), Times.Never);
+            _libraryServiceMock.Verify(r => r.GetPublicQuestionsByCatalogId(1), Times.Never);
         }
 
         _mediatorMock.Verify(m => m.Publish(It.IsAny<RefreshRoomEvent>(), default), Times.Once);

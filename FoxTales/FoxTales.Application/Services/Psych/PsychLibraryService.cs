@@ -73,18 +73,10 @@ public class PsychLibraryService(IPsychLibraryRepository psychLibraryRepository,
         return _mapper.Map<ICollection<CatalogTypeDto>>(availableCatalogTypes);
     }
 
-    public async Task<ICollection<QuestionDto>> GetPublicQuestions()
+    public async Task<ICollection<QuestionDto>> GetPublicQuestionsByCatalogId(int catalogId)
     {
-        if (_cache.TryGetValue(CacheKeys.PublicQuestions, out ICollection<QuestionDto>? cachedQuestions) && cachedQuestions != null)
-        {
-            return cachedQuestions;
-        }
-
-        ICollection<Question> publicQuestions = await _psychLibraryRepository.GetPublicQuestions();
+        ICollection<Question> publicQuestions = await _psychLibraryRepository.GetPublicQuestionsByCatalogId(catalogId);
         ICollection<QuestionDto> publicQuestionsDto = _mapper.Map<ICollection<QuestionDto>>(publicQuestions);
-
-        _cache.Set(CacheKeys.PublicQuestions, publicQuestionsDto, new MemoryCacheEntryOptions().SetSlidingExpiration(_cacheDuration));
-
         return publicQuestionsDto;
     }
 
