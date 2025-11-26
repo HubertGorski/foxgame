@@ -22,11 +22,16 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         return _roomStore.GetRoomByCode(gameCode);
     }
 
+    private async Task RemoveUserFromRooms(int userId)
+    {
+        await RemoveAllRoomsByOwnerId(userId);
+        await RemoveUserFromAllRooms(userId);
+    }
+
     public async Task CreateRoom(RoomDto room)
     {
         room.Code = RoomCodeGenerator.GenerateUniqueCode(code => !_roomStore.RoomExists(code));
-        await RemoveAllRoomsByOwnerId(room.Owner.UserId);
-        await RemoveUserFromAllRooms(room.Owner.UserId);
+        await RemoveUserFromRooms(room.Owner.UserId);
 
         room.Owner.IsReady = false;
         room.Users.Add(room.Owner);
@@ -146,8 +151,7 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         RoomDto? room = await VerifyRoomAccessGetRoom(connectionId, gameCode, password, ownerId);
         if (room == null || room.Code == null) return;
 
-        await RemoveAllRoomsByOwnerId(player.UserId);
-        await RemoveUserFromAllRooms(player.UserId);
+        await RemoveUserFromRooms(player.UserId);
 
         player.IsReady = false;
         room.Users.Add(player);
@@ -162,7 +166,7 @@ public class RoomService(IMediator mediator, IRoundService roundService, IRoomSt
         return _roomStore.FindPlayerByConnectionId(connectionId);
     }
 
-    public async Task ContinuePlaying(int? userId, string connectionId)
+    public async Task ContinuePlaying(int? userId, string connectionId) // TODO: zrobic dolaczanie do istniejacej gry i wziac pod uwage tmpUsers
     {
         var (gameCode, player) = _roomStore.FindPlayerByUserId(userId);
         if (gameCode == null || player == null)
