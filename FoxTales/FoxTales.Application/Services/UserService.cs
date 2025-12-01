@@ -42,6 +42,7 @@ public class UserService(IUserRepository userRepository, IMapper mapper, IPasswo
     private async Task Register(User user)
     {
         user.UserLimits = _userLimitService.CreateDefaultLimitsForUser(user.UserId);
+        user.TermsAcceptedAt = DateTime.UtcNow;
         user.UserStatus = UserStatus.Active; // TODO: jest od razu aktywny, zmienić gdy będzie potwierdzanie konta.
         await _userRepository.AddAsync(user);
     }

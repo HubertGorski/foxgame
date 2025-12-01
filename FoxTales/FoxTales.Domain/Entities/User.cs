@@ -13,6 +13,7 @@ public class User
     public string? Email { get; set; }
     public string? PasswordHash { get; set; }
     public required int AvatarId { get; set; }
+    public required bool TermsAccepted { get; set; }
     public virtual Avatar Avatar { get; set; } = null!;
 
     public int RoleId { get; set; }
@@ -27,5 +28,6 @@ public class User
     public ICollection<Catalog> Catalogs { get; set; } = [];
     public required UserStatus UserStatus { get; set; }
     public DateTime? ExpirationDate { get; set; }
+    public DateTime? TermsAcceptedAt { get; set; }
 
 }

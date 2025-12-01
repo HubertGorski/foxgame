@@ -43,6 +43,7 @@ public class PublicQuestionsSeeder(FoxTalesDbContext context, ILogger<PublicQues
                 Username = "Fox Templates",
                 AvatarId = 1,
                 UserStatus = UserStatus.Active,
+                TermsAccepted = true,
                 RoleId = (int)RoleName.Admin
             };
 
