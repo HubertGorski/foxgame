@@ -18,5 +18,6 @@ public static class DictHelper
         public const string TokenDoesNotContainUserId = "tokenDoesNotContainUserId";
         public const string RoomDoesntExist = "roomDoesntExist";
         public const string InvalidPassword = "invalidPassword";
+        public const string TermsAcceptedCannotBeEmpty = "termsAcceptedCannotBeEmpty";
     }
 }

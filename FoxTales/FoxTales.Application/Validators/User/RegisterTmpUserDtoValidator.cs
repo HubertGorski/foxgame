@@ -14,6 +14,8 @@ public class RegisterTmpUserDtoValidator : AbstractValidator<RegisterTmpUserDto>
             .Length(3, 21).WithMessage(DictHelper.Validation.UsernameFormatIsIncorrect)
             .Must(username => !ExistsByUsernameAsync(username, userRepository))
             .WithMessage(DictHelper.Validation.UsernameIsAlreadyTaken);
+
+        RuleFor(x => x.TermsAccepted).Equal(true).WithMessage(DictHelper.Validation.TermsAcceptedCannotBeEmpty);
     }
 
     private static bool ExistsByUsernameAsync(string username, IUserRepository userRepository)

@@ -23,6 +23,8 @@ public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
 
         RuleFor(x => x.Password).MinimumLength(6).WithMessage(DictHelper.Validation.PasswordIsTooShort);
         RuleFor(x => x.ConfirmPassword).Equal(e => e.Password).WithMessage(DictHelper.Validation.PasswordsAreNotIdentical);
+
+        RuleFor(x => x.TermsAccepted).Equal(true).WithMessage(DictHelper.Validation.TermsAcceptedCannotBeEmpty);
     }
 
     private static bool ExistsByEmailAsync(string email, IUserRepository userRepository)
